@@ -22,7 +22,7 @@ func AddNewSong(c *gin.Context) {
 	c.BindJSON(&song)
 	err := Models.AddNewSong(&song)
 	if err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
+		c.JSON(http.StatusNotFound, gin.H{"Error": err})
 	} else {
 		c.JSON(http.StatusOK, song)
 	}
@@ -49,7 +49,7 @@ func UpdateSong(c *gin.Context) {
 	c.BindJSON(&song)
 	err = Models.UpdateSong(&song, id)
 	if err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
+		c.JSON(http.StatusNotFound, gin.H{"Error": err})
 	} else {
 		c.JSON(http.StatusOK, song)
 	}

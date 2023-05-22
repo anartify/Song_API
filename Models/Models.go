@@ -2,7 +2,9 @@ package Models
 
 import (
 	"Song_API/Config"
+	"time"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -11,12 +13,20 @@ type Song struct {
 	Song        string `json:"song"`
 	Artist      string `json:"artist"`
 	Plays       uint   `json:"plays"`
-	Playtime    string `json:"playtime"`
 	ReleaseDate string `json:"release_date"`
 }
 
 func (b *Song) TableName() string {
 	return "Songs"
+}
+
+func (data Song) Validation() error {
+	return validation.ValidateStruct(&data,
+		validation.Field(&data.Song, validation.Required),
+		validation.Field(&data.Artist, validation.Required),
+		validation.Field(&data.Plays, validation.Required),
+		validation.Field(&data.ReleaseDate, validation.Required, validation.Date(time.DateOnly)),
+	)
 }
 
 func GetAllSong(b *[]Song) (err error) {
@@ -27,6 +37,9 @@ func GetAllSong(b *[]Song) (err error) {
 }
 
 func AddNewSong(b *Song) (err error) {
+	if err = b.Validation(); err != nil {
+		return err
+	}
 	if err = Config.DB.Create(b).Error; err != nil {
 		return err
 	}
@@ -41,6 +54,9 @@ func GetSong(b *Song, id string) (err error) {
 }
 
 func UpdateSong(b *Song, id string) (err error) {
+	if err = b.Validation(); err != nil {
+		return err
+	}
 	if err := Config.DB.Save(b).Error; err != nil {
 		return err
 	}
