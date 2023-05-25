@@ -7,61 +7,65 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllSong(c *gin.Context) {
+type Controller struct {
+	M Models.SongInterface
+}
+
+func (ctrl Controller) GetAllSong(ctx *gin.Context) {
 	var song []Models.Song
-	err := Models.GetAllSong(&song)
+	err := ctrl.M.GetAllSong(&song)
 	if err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
+		ctx.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 	} else {
-		c.JSON(http.StatusOK, song)
+		ctx.JSON(http.StatusOK, song)
 	}
 }
 
-func AddNewSong(c *gin.Context) {
+func (ctrl Controller) AddNewSong(ctx *gin.Context) {
 	var song Models.Song
-	c.BindJSON(&song)
-	err := Models.AddNewSong(&song)
+	ctx.BindJSON(&song)
+	err := ctrl.M.AddNewSong(&song)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"Error": err})
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 	} else {
-		c.JSON(http.StatusOK, song)
+		ctx.JSON(http.StatusOK, song)
 	}
 }
 
-func GetSong(c *gin.Context) {
-	id := c.Params.ByName("id")
+func (ctrl Controller) GetSong(ctx *gin.Context) {
+	id := ctx.Params.ByName("id")
 	var song Models.Song
-	err := Models.GetSong(&song, id)
+	err := ctrl.M.GetSong(&song, id)
 	if err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
+		ctx.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 	} else {
-		c.JSON(http.StatusOK, song)
+		ctx.JSON(http.StatusOK, song)
 	}
 }
 
-func UpdateSong(c *gin.Context) {
+func (ctrl Controller) UpdateSong(ctx *gin.Context) {
 	var song Models.Song
-	id := c.Params.ByName("id")
-	err := Models.GetSong(&song, id)
+	id := ctx.Params.ByName("id")
+	err := ctrl.M.GetSong(&song, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, song)
+		ctx.JSON(http.StatusNotFound, song)
 	}
-	c.BindJSON(&song)
-	err = Models.UpdateSong(&song, id)
+	ctx.BindJSON(&song)
+	err = ctrl.M.UpdateSong(&song, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"Error": err})
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 	} else {
-		c.JSON(http.StatusOK, song)
+		ctx.JSON(http.StatusOK, song)
 	}
 }
 
-func DeleteSong(c *gin.Context) {
+func (ctrl Controller) DeleteSong(ctx *gin.Context) {
 	var song Models.Song
-	id := c.Params.ByName("id")
-	err := Models.DeleteSong(&song, id)
+	id := ctx.Params.ByName("id")
+	err := ctrl.M.DeleteSong(&song, id)
 	if err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
+		ctx.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"id" + id: "is deleted"})
+		ctx.JSON(http.StatusOK, gin.H{"id-" + id: "deleted"})
 	}
 }
