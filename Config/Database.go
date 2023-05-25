@@ -3,15 +3,13 @@ package Config
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/jinzhu/gorm"
-	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
 var DB *gorm.DB
 
-// DBConfig represents db configuration
 type Profile struct {
 	Host     string
 	Port     int
@@ -21,24 +19,23 @@ type Profile struct {
 }
 
 func DBConfig() *Profile {
-	err := godotenv.Load()
-	if err != nil {
-		// Handle error if .env file is not found or cannot be loaded
-		panic("Failed to load .env file")
-	}
+
+	viper.SetConfigFile(".env")
+	viper.ReadInConfig()
 	dbConfig := Profile{
 		Host:     "localhost",
 		Port:     3306,
-		User:     os.Getenv("DB_USER"),
-		Password: os.Getenv("DB_PASSWORD"),
+		User:     viper.Get("DB_USER").(string),
+		Password: viper.Get("DB_PASSWORD").(string),
 		DBName:   "SongDB",
 	}
 	return &dbConfig
 }
+
 func Db_url() string {
 	profile := DBConfig()
 	return fmt.Sprintf(
-		"%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
+		"%s:%s@tcp(%s:%d)/%s",
 		profile.User,
 		profile.Password,
 		profile.Host,
