@@ -1,7 +1,7 @@
-package Test
+package test
 
 import (
-	"Song_API/Models"
+	"Song_API/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +9,7 @@ import (
 
 func TestSongValidation(t *testing.T) {
 	assert := assert.New(t)
-	song := Models.Song{
+	song := models.Song{
 		Song:        "My Song",
 		Artist:      "My Artist",
 		Plays:       10,

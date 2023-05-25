@@ -1,14 +1,14 @@
-package Routes
+package routes
 
 import (
-	"Song_API/Controllers"
-	"Song_API/Models"
+	"Song_API/controllers"
+	"Song_API/models"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Initialize() *gin.Engine {
-	ctrl := Controllers.Controller{M: Models.SongModel{}}
+	ctrl := controllers.Controller{M: models.SongModel{}}
 	r := gin.Default()
 	grp := r.Group("/v1")
 	{

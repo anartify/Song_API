@@ -1,18 +1,18 @@
-package Controllers
+package controllers
 
 import (
-	"Song_API/Models"
+	"Song_API/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Controller struct {
-	M Models.SongInterface
+	M models.SongInterface
 }
 
 func (ctrl Controller) GetAllSong(ctx *gin.Context) {
-	var song []Models.Song
+	var song []models.Song
 	err := ctrl.M.GetAllSong(&song)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
@@ -22,7 +22,7 @@ func (ctrl Controller) GetAllSong(ctx *gin.Context) {
 }
 
 func (ctrl Controller) AddNewSong(ctx *gin.Context) {
-	var song Models.Song
+	var song models.Song
 	ctx.BindJSON(&song)
 	err := ctrl.M.AddNewSong(&song)
 	if err != nil {
@@ -34,7 +34,7 @@ func (ctrl Controller) AddNewSong(ctx *gin.Context) {
 
 func (ctrl Controller) GetSong(ctx *gin.Context) {
 	id := ctx.Params.ByName("id")
-	var song Models.Song
+	var song models.Song
 	err := ctrl.M.GetSong(&song, id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
@@ -44,7 +44,7 @@ func (ctrl Controller) GetSong(ctx *gin.Context) {
 }
 
 func (ctrl Controller) UpdateSong(ctx *gin.Context) {
-	var song Models.Song
+	var song models.Song
 	id := ctx.Params.ByName("id")
 	err := ctrl.M.GetSong(&song, id)
 	if err != nil {
@@ -60,7 +60,7 @@ func (ctrl Controller) UpdateSong(ctx *gin.Context) {
 }
 
 func (ctrl Controller) DeleteSong(ctx *gin.Context) {
-	var song Models.Song
+	var song models.Song
 	id := ctx.Params.ByName("id")
 	err := ctrl.M.DeleteSong(&song, id)
 	if err != nil {

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"Song_API/Config"
-	"Song_API/Models"
-	"Song_API/Routes"
+	"Song_API/config"
+	"Song_API/models"
+	"Song_API/routes"
 
 	"github.com/jinzhu/gorm"
 )
@@ -11,12 +11,12 @@ import (
 var err error
 
 func main() {
-	Config.DB, err = gorm.Open("mysql", Config.Db_url())
+	config.DB, err = gorm.Open("mysql", config.Db_url())
 	if err != nil {
 		panic(err)
 	}
-	defer Config.DB.Close()
-	Config.DB.AutoMigrate(&Models.Song{})
-	r := Routes.Initialize()
+	defer config.DB.Close()
+	config.DB.AutoMigrate(&models.Song{})
+	r := routes.Initialize()
 	r.Run()
 }

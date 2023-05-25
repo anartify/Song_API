@@ -1,7 +1,7 @@
-package Models
+package models
 
 import (
-	"Song_API/Config"
+	"Song_API/config"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -40,7 +40,7 @@ type SongInterface interface {
 type SongModel struct{}
 
 func (m SongModel) GetAllSong(b *[]Song) (err error) {
-	if err = Config.DB.Find(b).Error; err != nil {
+	if err = config.DB.Find(b).Error; err != nil {
 		return err
 	}
 	return nil
@@ -50,14 +50,14 @@ func (m SongModel) AddNewSong(b *Song) (err error) {
 	if err = b.Validation(); err != nil {
 		return err
 	}
-	if err = Config.DB.Create(b).Error; err != nil {
+	if err = config.DB.Create(b).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m SongModel) GetSong(b *Song, id string) (err error) {
-	if err := Config.DB.Where("id = ?", id).First(b).Error; err != nil {
+	if err := config.DB.Where("id = ?", id).First(b).Error; err != nil {
 		return err
 	}
 	return nil
@@ -67,11 +67,11 @@ func (m SongModel) UpdateSong(b *Song, id string) (err error) {
 	if err = b.Validation(); err != nil {
 		return err
 	}
-	Config.DB.Save(b)
+	config.DB.Save(b)
 	return nil
 }
 
 func (m SongModel) DeleteSong(b *Song, id string) (err error) {
-	Config.DB.Where("id = ?", id).Delete(b)
+	config.DB.Where("id = ?", id).Delete(b)
 	return nil
 }
