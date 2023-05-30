@@ -1,8 +1,9 @@
 package test
 
 import (
-	"Song_API/controllers"
-	"Song_API/models"
+	"Song_API/api/controllers"
+	"Song_API/api/models"
+	"Song_API/api/routes"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,117 +14,142 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockModel struct {
+type MockRepo struct {
 	mock.Mock
 }
 
-func (m *MockModel) GetAllSong(b *[]models.Song) (err error) {
+func (m *MockRepo) GetAllSong(b *[]models.Song) error {
 	args := m.Called(b)
 	return args.Error(0)
 }
 
-func (m *MockModel) AddNewSong(b *models.Song) (err error) {
+func (m *MockRepo) AddSong(b *models.Song) error {
 	args := m.Called(b)
 	return args.Error(0)
 }
 
-func (m *MockModel) GetSong(b *models.Song, id string) (err error) {
+func (m *MockRepo) GetSong(b *models.Song, id string) error {
 	args := m.Called(b, id)
 	return args.Error(0)
 }
 
-func (m *MockModel) UpdateSong(b *models.Song, id string) (err error) {
+func (m *MockRepo) UpdateSong(b *models.Song) error {
+	args := m.Called(b)
+	return args.Error(0)
+}
+
+func (m *MockRepo) DeleteSong(b *models.Song, id string) error {
 	args := m.Called(b, id)
 	return args.Error(0)
 }
 
-func (m *MockModel) DeleteSong(b *models.Song, id string) (err error) {
-	args := m.Called(b, id)
-	return args.Error(0)
-}
-
-func initializeTest() (*MockModel, controllers.Controller, *gin.Engine) {
+func initializeTest() (*MockRepo, controllers.Controller, *gin.Engine) {
 	gin.SetMode(gin.TestMode)
-	mockModel := new(MockModel)
-	controller := controllers.Controller{M: mockModel}
-	return mockModel, controller, gin.Default()
+	mockRepo := new(MockRepo)
+	controller := controllers.Controller{Repo: mockRepo}
+	return mockRepo, controller, gin.Default()
 }
 
 // Testing GetAllSong function of Controller
 func TestGetAllSong(t *testing.T) {
 
-	mockModel, controller, router := initializeTest()
-	router.GET("/v1/api", controller.GetAllSong)
+	mockRepo, controller, router := initializeTest()
+	routes.RegisterRoutes(routes.RouteDef{
+		Path:    "/songs",
+		Version: "v1",
+		Method:  "GET",
+		Handler: controller.GetAllSong,
+	})
+	routes.InitializeRoutes(router)
+	mockRepo.On("GetAllSong", mock.AnythingOfType("*[]models.Song")).Return(nil)
 
-	mockModel.On("GetAllSong", mock.AnythingOfType("*[]models.Song")).Return(nil)
-
-	req, _ := http.NewRequest("GET", "/v1/api", nil)
+	req, _ := http.NewRequest("GET", "/v1/songs", nil)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	mockModel.AssertExpectations(t)
+	mockRepo.AssertExpectations(t)
 }
 
-// Testing AddNewSong function of Controller
-func TestAddNewSong(t *testing.T) {
+// Testing AddSong function of Controller
+func TestAddSong(t *testing.T) {
 
-	mockModel, controller, router := initializeTest()
-	mockModel.On("AddNewSong", mock.AnythingOfType("*models.Song")).Return(nil)
-
-	router.POST("/v1/api", controller.AddNewSong)
+	mockRepo, controller, router := initializeTest()
+	mockRepo.On("AddSong", mock.AnythingOfType("*models.Song")).Return(nil)
+	routes.RegisterRoutes(routes.RouteDef{
+		Path:    "/songs",
+		Version: "v1",
+		Method:  "POST",
+		Handler: controller.AddSong,
+	})
+	routes.InitializeRoutes(router)
 	song := `{"song": "Test", "artist": "test artist", "plays": 1, "release_date": "2020-01-01"}`
-	req, _ := http.NewRequest("POST", "/v1/api", strings.NewReader(song))
+	req, _ := http.NewRequest("POST", "/v1/songs", strings.NewReader(song))
 	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
 
 	router.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
-	mockModel.AssertExpectations(t)
+	mockRepo.AssertExpectations(t)
 }
 
-// Testing GetSong function of Controller
+// Testing GetSongById function of Controller
 func TestGetSong(t *testing.T) {
-	mockModel, controller, router := initializeTest()
-	router.GET("/v1/api/:id", controller.GetSong)
+	mockRepo, controller, router := initializeTest()
+	routes.RegisterRoutes(routes.RouteDef{
+		Path:    "/songs/:id",
+		Version: "v1",
+		Method:  "GET",
+		Handler: controller.GetSongById,
+	})
+	routes.InitializeRoutes(router)
+	mockRepo.On("GetSong", mock.AnythingOfType("*models.Song"), "1").Return(nil)
 
-	mockModel.On("GetSong", mock.AnythingOfType("*models.Song"), "1").Return(nil)
-
-	req, _ := http.NewRequest("GET", "/v1/api/1", nil)
+	req, _ := http.NewRequest("GET", "/v1/songs/1", nil)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	mockModel.AssertExpectations(t)
+	mockRepo.AssertExpectations(t)
 }
 
 // Testing UpdateSong function of Controller
 func TestUpdateSong(t *testing.T) {
-	mockModel, controller, router := initializeTest()
-	router.PUT("/v1/api/:id", controller.UpdateSong)
-
-	mockModel.On("GetSong", mock.AnythingOfType("*models.Song"), "1").Return(nil)
-	mockModel.On("UpdateSong", mock.AnythingOfType("*models.Song"), "1").Return(nil)
+	mockRepo, controller, router := initializeTest()
+	routes.RegisterRoutes(routes.RouteDef{
+		Path:    "/songs/:id",
+		Version: "v1",
+		Method:  "PUT",
+		Handler: controller.UpdateSong,
+	})
+	routes.InitializeRoutes(router)
+	mockRepo.On("GetSong", mock.AnythingOfType("*models.Song"), "1").Return(nil)
+	mockRepo.On("UpdateSong", mock.AnythingOfType("*models.Song")).Return(nil)
 	song := `{"song": "NewSong"}`
-	req, _ := http.NewRequest("PUT", "/v1/api/1", strings.NewReader(song))
+	req, _ := http.NewRequest("PUT", "/v1/songs/1", strings.NewReader(song))
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	mockModel.AssertExpectations(t)
+	mockRepo.AssertExpectations(t)
 }
 
 // Testing DeleteSong function of Controller
 func TestDeleteSong(t *testing.T) {
-	mockModel, controller, router := initializeTest()
-	router.DELETE("/v1/api/:id", controller.DeleteSong)
+	mockRepo, controller, router := initializeTest()
+	routes.RegisterRoutes(routes.RouteDef{
+		Path:    "/songs/:id",
+		Version: "v1",
+		Method:  "DELETE",
+		Handler: controller.DeleteSong,
+	})
+	routes.InitializeRoutes(router)
+	mockRepo.On("DeleteSong", mock.AnythingOfType("*models.Song"), "1").Return(nil)
 
-	mockModel.On("DeleteSong", mock.AnythingOfType("*models.Song"), "1").Return(nil)
-
-	req, _ := http.NewRequest("DELETE", "/v1/api/1", nil)
+	req, _ := http.NewRequest("DELETE", "/v1/songs/1", nil)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	mockModel.AssertExpectations(t)
+	mockRepo.AssertExpectations(t)
 }

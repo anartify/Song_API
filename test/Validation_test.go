@@ -1,7 +1,7 @@
 package test
 
 import (
-	"Song_API/models"
+	"Song_API/api/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
