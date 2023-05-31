@@ -10,10 +10,12 @@ import (
 	"net/http"
 )
 
+// Controller struct holds a repository.SongInterface object. The controller functions use it to access the methods of the repository package
 type Controller struct {
 	Repo repository.SongInterface
 }
 
+// AddSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper AddSong(*models.Song) function to add a song in database and returns a map[string]interface{} response containing error message, status code and data
 func (s *Controller) AddSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
 	var song models.Song
 	bodyBytes, _ := json.Marshal(req.Body)
@@ -31,6 +33,7 @@ func (s *Controller) AddSong(ctx context.Context, req *routes.AppReq) routes.App
 	}
 }
 
+// GetAllSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper GetAllSong(*[]models.Song) function to get all songs from database and returns a map[string]interface{} response containing error message, status code and data
 func (s *Controller) GetAllSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
 	fmt.Println("GetAllSong")
 	var song []models.Song
@@ -46,6 +49,7 @@ func (s *Controller) GetAllSong(ctx context.Context, req *routes.AppReq) routes.
 	}
 }
 
+// GetSongById(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper GetSong(*models.Song, id string) function to get a song from database and returns a map[string]interface{} response containing error message, status code and data
 func (s *Controller) GetSongById(ctx context.Context, req *routes.AppReq) routes.AppResp {
 	var song models.Song
 	id := req.Params["id"]
@@ -61,6 +65,7 @@ func (s *Controller) GetSongById(ctx context.Context, req *routes.AppReq) routes
 	}
 }
 
+// UpdateSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper UpdateSong(*models.Song) function to update a song in database and returns a map[string]interface{} response containing error message, status code and data
 func (s *Controller) UpdateSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
 	var song models.Song
 	id := req.Params["id"]
@@ -92,6 +97,7 @@ func (s *Controller) UpdateSong(ctx context.Context, req *routes.AppReq) routes.
 	}
 }
 
+// DeleteSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper DeleteSong(*models.Song, id string) function to delete a song from database and returns a map[string]interface{} response containing error message and status code
 func (s *Controller) DeleteSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
 	var song models.Song
 	id := req.Params["id"]

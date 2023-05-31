@@ -9,6 +9,7 @@ import (
 
 var DB *gorm.DB
 
+// Connect() connects the mysql database and automigrates the tables.
 func Connect() {
 	var err error
 	DB, err = gorm.Open("mysql", DbUrl())

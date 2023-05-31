@@ -14,35 +14,42 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// MockRepo struct holds a mock.Mock field to mock the repository.SongRepo interface. It helps in testing controller functions by mocking the associated helper functions of repo layer.
 type MockRepo struct {
 	mock.Mock
 }
 
+// GetAllSong() mocks the GetAllSong() method of repository.SongRepo interface.
 func (m *MockRepo) GetAllSong(b *[]models.Song) error {
 	args := m.Called(b)
 	return args.Error(0)
 }
 
+// AddSong() mocks the AddSong() method of repository.SongRepo interface.
 func (m *MockRepo) AddSong(b *models.Song) error {
 	args := m.Called(b)
 	return args.Error(0)
 }
 
+// GetSong() mocks the GetSong() method of repository.SongRepo interface.
 func (m *MockRepo) GetSong(b *models.Song, id string) error {
 	args := m.Called(b, id)
 	return args.Error(0)
 }
 
+// UpdateSong() mocks the UpdateSong() method of repository.SongRepo interface.
 func (m *MockRepo) UpdateSong(b *models.Song) error {
 	args := m.Called(b)
 	return args.Error(0)
 }
 
+// DeleteSong() mocks the DeleteSong() method of repository.SongRepo interface.
 func (m *MockRepo) DeleteSong(b *models.Song, id string) error {
 	args := m.Called(b, id)
 	return args.Error(0)
 }
 
+// initializeTest() instantiates a MockRepo and creates a new Controller with this MockRepo as its Repo field. It also creates a new default gin.Engine and returns all three.
 func initializeTest() (*MockRepo, controllers.Controller, *gin.Engine) {
 	gin.SetMode(gin.TestMode)
 	mockRepo := new(MockRepo)
@@ -50,7 +57,7 @@ func initializeTest() (*MockRepo, controllers.Controller, *gin.Engine) {
 	return mockRepo, controller, gin.Default()
 }
 
-// Testing GetAllSong function of Controller
+// TestGetAllSong function tests the GetAllSong function of Controller
 func TestGetAllSong(t *testing.T) {
 
 	mockRepo, controller, router := initializeTest()
@@ -71,7 +78,7 @@ func TestGetAllSong(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// Testing AddSong function of Controller
+// TestAddSong function tests the AddSong function of Controller
 func TestAddSong(t *testing.T) {
 
 	mockRepo, controller, router := initializeTest()
@@ -93,8 +100,8 @@ func TestAddSong(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// Testing GetSongById function of Controller
-func TestGetSong(t *testing.T) {
+// TestGetSongById function tests the GetSongById function of Controller
+func TestGetSongById(t *testing.T) {
 	mockRepo, controller, router := initializeTest()
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:    "/songs/:id",
@@ -113,7 +120,7 @@ func TestGetSong(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// Testing UpdateSong function of Controller
+// TestUpdateSong function tests the UpdateSong function of Controller
 func TestUpdateSong(t *testing.T) {
 	mockRepo, controller, router := initializeTest()
 	routes.RegisterRoutes(routes.RouteDef{
@@ -134,7 +141,7 @@ func TestUpdateSong(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// Testing DeleteSong function of Controller
+// TestDeleteSong function tests the DeleteSong function of Controller
 func TestDeleteSong(t *testing.T) {
 	mockRepo, controller, router := initializeTest()
 	routes.RegisterRoutes(routes.RouteDef{

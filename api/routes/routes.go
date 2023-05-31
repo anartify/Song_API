@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AppReq is a struct to hold the request body, headers, query and params.
 type AppReq struct {
 	Body    map[string]interface{}
 	Headers map[string]string
@@ -17,6 +18,7 @@ type AppResp map[string]interface{}
 
 type RouteHandler func(ctx context.Context, req *AppReq) AppResp
 
+// RouteDef struct holds the path, version, request method and associated handler function of a route.
 type RouteDef struct {
 	Path    string
 	Version string
@@ -26,14 +28,17 @@ type RouteDef struct {
 
 var clientRoutes = []RouteDef{}
 
+// RegisterRoutes appends the RouteDef to the clientRoutes slice.
 func RegisterRoutes(r RouteDef) {
 	clientRoutes = append(clientRoutes, r)
 }
 
+// GetPath returns the path of the route.
 func (r *RouteDef) GetPath() string {
 	return "/" + r.Version + r.Path
 }
 
+// InitializeRoutes registers request Handle and middleware for the different clientRoutes. It extracts AppReq from gin.Context and calls the correspoding RoutesHandler function.
 func InitializeRoutes(server *gin.Engine) {
 	for _, r := range clientRoutes {
 		route := r

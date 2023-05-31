@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// DbUrl() reads the .env file and returns the database url.
 func DbUrl() string {
 	viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()

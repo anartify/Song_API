@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestSongValidation() tests the Validation() method of the Song struct.
 func TestSongValidation(t *testing.T) {
 	assert := assert.New(t)
 	song := models.Song{
