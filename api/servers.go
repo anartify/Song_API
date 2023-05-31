@@ -2,6 +2,7 @@ package api
 
 import (
 	"Song_API/api/controllers"
+	"Song_API/api/middleware"
 	"Song_API/api/repository"
 	"Song_API/api/routes"
 
@@ -30,10 +31,11 @@ func (s *Server) Start() error {
 		Handler: handler.GetAllSong,
 	})
 	routes.RegisterRoutes(routes.RouteDef{
-		Path:    "/songs",
-		Version: "v1",
-		Method:  "POST",
-		Handler: handler.AddSong,
+		Path:        "/songs",
+		Version:     "v1",
+		Method:      "POST",
+		Handler:     handler.AddSong,
+		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:    "/songs/:id",
@@ -42,16 +44,18 @@ func (s *Server) Start() error {
 		Handler: handler.GetSongById,
 	})
 	routes.RegisterRoutes(routes.RouteDef{
-		Path:    "/songs/:id",
-		Version: "v1",
-		Method:  "PUT",
-		Handler: handler.UpdateSong,
+		Path:        "/songs/:id",
+		Version:     "v1",
+		Method:      "PUT",
+		Handler:     handler.UpdateSong,
+		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
-		Path:    "/songs/:id",
-		Version: "v1",
-		Method:  "DELETE",
-		Handler: handler.DeleteSong,
+		Path:        "/songs/:id",
+		Version:     "v1",
+		Method:      "DELETE",
+		Handler:     handler.DeleteSong,
+		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
 	})
 	routes.InitializeRoutes(s.router)
 	return s.router.Run()

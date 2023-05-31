@@ -17,9 +17,21 @@ type Controller struct {
 
 // AddSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper AddSong(*models.Song) function to add a song in database and returns a map[string]interface{} response containing error message, status code and data
 func (s *Controller) AddSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
+	user := ctx.Value("user").(string)
+	if user != "admin" {
+		return map[string]interface{}{
+			"error":  "Unauthorized access",
+			"status": http.StatusUnauthorized,
+		}
+	}
 	var song models.Song
 	bodyBytes, _ := json.Marshal(req.Body)
-	json.Unmarshal(bodyBytes, &song)
+	if err := json.Unmarshal(bodyBytes, &song); err != nil {
+		return map[string]interface{}{
+			"error":  "failed to parse request body",
+			"status": http.StatusInternalServerError,
+		}
+	}
 	if err := s.Repo.AddSong(&song); err != nil {
 		return map[string]interface{}{
 			"error":  err.Error(),
@@ -35,7 +47,6 @@ func (s *Controller) AddSong(ctx context.Context, req *routes.AppReq) routes.App
 
 // GetAllSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper GetAllSong(*[]models.Song) function to get all songs from database and returns a map[string]interface{} response containing error message, status code and data
 func (s *Controller) GetAllSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
-	fmt.Println("GetAllSong")
 	var song []models.Song
 	if err := s.Repo.GetAllSong(&song); err != nil {
 		return map[string]interface{}{
@@ -67,6 +78,13 @@ func (s *Controller) GetSongById(ctx context.Context, req *routes.AppReq) routes
 
 // UpdateSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper UpdateSong(*models.Song) function to update a song in database and returns a map[string]interface{} response containing error message, status code and data
 func (s *Controller) UpdateSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
+	user := ctx.Value("user").(string)
+	if user != "admin" {
+		return map[string]interface{}{
+			"error":  "Unauthorized access",
+			"status": http.StatusUnauthorized,
+		}
+	}
 	var song models.Song
 	id := req.Params["id"]
 	if err := s.Repo.GetSong(&song, id); err != nil {
@@ -75,15 +93,21 @@ func (s *Controller) UpdateSong(ctx context.Context, req *routes.AppReq) routes.
 			"status": http.StatusNotFound,
 		}
 	}
-	if val, exist := req.Body["id"]; exist && val != id {
+
+	bodyBytes, _ := json.Marshal(req.Body)
+	if err := json.Unmarshal(bodyBytes, &song); err != nil {
 		return map[string]interface{}{
-			"error":  "id mismatch; updataion not allowed",
+			"error":  "failed to parse request body",
+			"status": http.StatusInternalServerError,
+		}
+	}
+	if val, exist := req.Body["id"]; exist && fmt.Sprintf("%v", val) != id {
+		return map[string]interface{}{
+			"error":  "id mismatch, updation not allowed",
 			"status": http.StatusBadRequest,
 		}
 	}
 
-	bodyBytes, _ := json.Marshal(req.Body)
-	json.Unmarshal(bodyBytes, &song)
 	if err := s.Repo.UpdateSong(&song); err != nil {
 		return map[string]interface{}{
 			"error":  err.Error(),
@@ -99,6 +123,13 @@ func (s *Controller) UpdateSong(ctx context.Context, req *routes.AppReq) routes.
 
 // DeleteSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper DeleteSong(*models.Song, id string) function to delete a song from database and returns a map[string]interface{} response containing error message and status code
 func (s *Controller) DeleteSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
+	user := ctx.Value("user").(string)
+	if user != "admin" {
+		return map[string]interface{}{
+			"error":  "Unauthorized access",
+			"status": http.StatusUnauthorized,
+		}
+	}
 	var song models.Song
 	id := req.Params["id"]
 	if err := s.Repo.DeleteSong(&song, id); err != nil {

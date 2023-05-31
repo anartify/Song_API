@@ -18,12 +18,13 @@ type AppResp map[string]interface{}
 
 type RouteHandler func(ctx context.Context, req *AppReq) AppResp
 
-// RouteDef struct holds the path, version, request method and associated handler function of a route.
+// RouteDef struct holds the path, version, request method, middlewares and associated handler function of a route.
 type RouteDef struct {
-	Path    string
-	Version string
-	Method  string
-	Handler RouteHandler
+	Path        string
+	Version     string
+	Method      string
+	Handler     RouteHandler
+	Middlewares []gin.HandlerFunc
 }
 
 var clientRoutes = []RouteDef{}
@@ -42,7 +43,7 @@ func (r *RouteDef) GetPath() string {
 func InitializeRoutes(server *gin.Engine) {
 	for _, r := range clientRoutes {
 		route := r
-		server.Handle(route.Method, route.GetPath(), func(c *gin.Context) {
+		ginHandler := func(c *gin.Context) {
 			appReq := &AppReq{
 				Body:    make(map[string]interface{}),
 				Headers: make(map[string]string),
@@ -72,6 +73,8 @@ func InitializeRoutes(server *gin.Engine) {
 			}
 			resp := route.Handler(c.Request.Context(), appReq)
 			c.JSON(resp["status"].(int), resp)
-		})
+		}
+		handlers := append(route.Middlewares, ginHandler)
+		server.Handle(route.Method, route.GetPath(), handlers...)
 	}
 }
