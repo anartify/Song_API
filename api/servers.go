@@ -35,7 +35,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "POST",
 		Handler:     handler.AddSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:    "/songs/:id",
@@ -48,14 +48,14 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "PUT",
 		Handler:     handler.UpdateSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/songs/:id",
 		Version:     "v1",
 		Method:      "DELETE",
 		Handler:     handler.DeleteSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
 	})
 	routes.InitializeRoutes(s.router)
 	return s.router.Run()

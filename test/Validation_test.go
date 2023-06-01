@@ -1,6 +1,7 @@
 package test
 
 import (
+	"Song_API/api/middleware"
 	"Song_API/api/models"
 	"testing"
 
@@ -18,29 +19,29 @@ func TestSongValidation(t *testing.T) {
 	}
 
 	song.Song = ""
-	err := song.Validation()
+	err := middleware.ValidateSong(song, true)
 	assert.Error(err, "validation should fail for empty Song")
 
 	song.Song = "My Song"
 	song.Artist = ""
-	err = song.Validation()
+	err = middleware.ValidateSong(song, true)
 	assert.Error(err, "validation should fail for empty Artist")
 
 	song.Artist = "My Artist"
-	song.Plays = 0
-	err = song.Validation()
-	assert.Error(err, "validation should fail for empty Plays")
+	song.Plays = -1
+	err = middleware.ValidateSong(song, true)
+	assert.Error(err, "validation should fail for negative Plays")
 
 	song.Plays = 10
 	song.ReleaseDate = ""
-	err = song.Validation()
+	err = middleware.ValidateSong(song, true)
 	assert.Error(err, "validation should fail for empty ReleaseDate")
 
 	song.ReleaseDate = "2022-01-01 00:00:00"
-	err = song.Validation()
+	err = middleware.ValidateSong(song, true)
 	assert.Error(err, "validation should fail for invalid ReleaseDate")
 
 	song.ReleaseDate = "2022-01-01"
-	err = song.Validation()
+	err = middleware.ValidateSong(song, true)
 	assert.NoError(err, "validation should pass")
 }

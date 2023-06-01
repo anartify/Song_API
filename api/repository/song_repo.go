@@ -37,9 +37,6 @@ func (sr SongRepo) GetAllSong(b *[]models.Song) error {
 
 // AddSong(*models.Song) adds a song in database and returns error if any
 func (sr SongRepo) AddSong(b *models.Song) error {
-	if err := b.Validation(); err != nil {
-		return &CustomError{message: err.Error()}
-	}
 	if err := database.DB.Create(b).Error; err != nil {
 		return &CustomError{message: "Failed to add data"}
 	}
@@ -56,15 +53,15 @@ func (sr SongRepo) GetSong(b *models.Song, id string) error {
 
 // UpdateSong(*models.Song) updates a song in database and returns error if any
 func (sr SongRepo) UpdateSong(b *models.Song) error {
-	if err := b.Validation(); err != nil {
-		return &CustomError{message: err.Error()}
-	}
 	database.DB.Save(b)
 	return nil
 }
 
 // DeleteSong(*models.Song, id string) deletes a song from database and returns error if any
 func (sr SongRepo) DeleteSong(b *models.Song, id string) error {
-	database.DB.Where("id = ?", id).Delete(b)
+	resp := database.DB.Where("id = ?", id).Delete(b)
+	if resp.RowsAffected == 0 {
+		return &CustomError{message: "No record Found"}
+	}
 	return nil
 }

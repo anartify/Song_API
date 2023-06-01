@@ -93,7 +93,7 @@ func TestAddSong(t *testing.T) {
 		Version:     "v1",
 		Method:      "POST",
 		Handler:     controller.AddSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
 	})
 	routes.InitializeRoutes(router)
 	song := `{"song": "Test", "artist": "test artist", "plays": 1, "release_date": "2020-01-01"}`
@@ -135,7 +135,7 @@ func TestUpdateSong(t *testing.T) {
 		Version:     "v1",
 		Method:      "PUT",
 		Handler:     controller.UpdateSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
 	})
 	routes.InitializeRoutes(router)
 	mockRepo.On("GetSong", mock.AnythingOfType("*models.Song"), "1").Return(nil)

@@ -66,10 +66,8 @@ func InitializeRoutes(server *gin.Engine) {
 			for _, param := range c.Params {
 				appReq.Params[param.Key] = param.Value
 			}
-			if c.Request.ContentLength > 0 {
-				if err := c.BindJSON(&appReq.Body); err != nil {
-					panic("failed to bind json")
-				}
+			if body, ok := c.Get("body"); ok {
+				appReq.Body = body.(map[string]interface{})
 			}
 			resp := route.Handler(c.Request.Context(), appReq)
 			c.JSON(resp["status"].(int), resp)
