@@ -23,39 +23,62 @@ func NewServer() *Server {
 
 // Start() registers the routes and starts the server
 func (s *Server) Start() error {
-	handler := &controllers.Controller{Repo: repository.SongRepo{}}
+	handler := &controllers.Controller{SongRepo: repository.SongRepo{}, AccountRepo: repository.AccountRepo{}}
 	routes.RegisterRoutes(routes.RouteDef{
-		Path:    "/songs",
-		Version: "v1",
-		Method:  "GET",
-		Handler: handler.GetAllSong,
+		Path:        "/",
+		Group:       "songs",
+		Version:     "v1",
+		Method:      "GET",
+		Handler:     handler.GetAllSong,
+		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
-		Path:        "/songs",
+		Path:        "/",
+		Group:       "songs",
 		Version:     "v1",
 		Method:      "POST",
 		Handler:     handler.AddSong,
 		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
-		Path:    "/songs/:id",
-		Version: "v1",
-		Method:  "GET",
-		Handler: handler.GetSongById,
+		Path:        "/:id",
+		Group:       "songs",
+		Version:     "v1",
+		Method:      "GET",
+		Handler:     handler.GetSongById,
+		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
-		Path:        "/songs/:id",
+		Path:        "/:id",
+		Group:       "songs",
 		Version:     "v1",
 		Method:      "PUT",
 		Handler:     handler.UpdateSong,
 		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
-		Path:        "/songs/:id",
+		Path:        "/:id",
+		Group:       "songs",
 		Version:     "v1",
 		Method:      "DELETE",
 		Handler:     handler.DeleteSong,
 		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
+	})
+	routes.RegisterRoutes(routes.RouteDef{
+		Path:        "/new",
+		Group:       "accounts",
+		Version:     "v1",
+		Method:      "POST",
+		Handler:     handler.CreateAccount,
+		Middlewares: []gin.HandlerFunc{middleware.Validation()},
+	})
+	routes.RegisterRoutes(routes.RouteDef{
+		Path:        "/",
+		Group:       "accounts",
+		Version:     "v1",
+		Method:      "POST",
+		Handler:     handler.GetAccount,
+		Middlewares: []gin.HandlerFunc{middleware.Validation()},
 	})
 	routes.InitializeRoutes(s.router)
 	return s.router.Run()

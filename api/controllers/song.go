@@ -10,34 +10,36 @@ import (
 	"net/http"
 )
 
-// Controller struct holds a repository.SongInterface object. The controller functions use it to access the methods of the repository package
+// Controller struct holds a Song and Account Interface objects of repo layer. The controller functions use it to access the methods of the repository package
 type Controller struct {
-	Repo repository.SongInterface
+	SongRepo    repository.SongInterface
+	AccountRepo repository.AccountInterface
 }
 
-// AddSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper AddSong(*models.Song) function to add a song in database and returns a routes.AppResp response containing error message, status code and data
-func (s *Controller) AddSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
+// AddSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper AddSong function to add a song in database and returns a routes.AppResp response containing error message, status code and data
+func (ctrl *Controller) AddSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
 	user := ctx.Value("user").(string)
 	var song models.Song
 	bodyBytes, _ := json.Marshal(req.Body)
 	json.Unmarshal(bodyBytes, &song)
-	if err := s.Repo.AddSong(&song); err != nil {
+	if err := ctrl.SongRepo.AddSong(&song, user); err != nil {
 		return routes.AppResp{
 			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
 		}
 	}
 	return routes.AppResp{
-		"response": "Song added successfully by " + user,
+		"response": "Song added successfully",
 		"data":     song,
 		"status":   http.StatusOK,
 	}
 }
 
-// GetAllSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper GetAllSong(*[]models.Song) function to get all songs from database and returns a routes.AppResp response containing error message, status code and data
-func (s *Controller) GetAllSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
+// GetAllSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper GetAllSong function to get all songs from database and returns a routes.AppResp response containing error message, status code and data
+func (ctrl *Controller) GetAllSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
+	user := ctx.Value("user").(string)
 	var song []models.Song
-	if err := s.Repo.GetAllSong(&song); err != nil {
+	if err := ctrl.SongRepo.GetAllSong(&song, user); err != nil {
 		return routes.AppResp{
 			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
@@ -49,11 +51,12 @@ func (s *Controller) GetAllSong(ctx context.Context, req *routes.AppReq) routes.
 	}
 }
 
-// GetSongById(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper GetSong(*models.Song, id string) function to get a song from database and returns a routes.AppResp response containing error message, status code and data
-func (s *Controller) GetSongById(ctx context.Context, req *routes.AppReq) routes.AppResp {
+// GetSongById(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper GetSong function to get a song from database and returns a routes.AppResp response containing error message, status code and data
+func (ctrl *Controller) GetSongById(ctx context.Context, req *routes.AppReq) routes.AppResp {
+	user := ctx.Value("user").(string)
 	var song models.Song
 	id := req.Params["id"]
-	if err := s.Repo.GetSong(&song, id); err != nil {
+	if err := ctrl.SongRepo.GetSong(&song, id, user); err != nil {
 		return routes.AppResp{
 			"error":  err.Error(),
 			"status": http.StatusNotFound,
@@ -65,12 +68,12 @@ func (s *Controller) GetSongById(ctx context.Context, req *routes.AppReq) routes
 	}
 }
 
-// UpdateSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper UpdateSong(*models.Song) function to update a song in database and returns a routes.AppResp response containing error message, status code and data
-func (s *Controller) UpdateSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
+// UpdateSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper UpdateSong to update a song in database and returns a routes.AppResp response containing error message, status code and data
+func (ctrl *Controller) UpdateSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
 	user := ctx.Value("user").(string)
 	var song models.Song
 	id := req.Params["id"]
-	if err := s.Repo.GetSong(&song, id); err != nil {
+	if err := ctrl.SongRepo.GetSong(&song, id, user); err != nil {
 		return routes.AppResp{
 			"error":  err.Error(),
 			"status": http.StatusNotFound,
@@ -84,25 +87,31 @@ func (s *Controller) UpdateSong(ctx context.Context, req *routes.AppReq) routes.
 			"status": http.StatusBadRequest,
 		}
 	}
-	if err := s.Repo.UpdateSong(&song); err != nil {
+	if val, exist := req.Body["user"]; exist && user != val {
+		return routes.AppResp{
+			"error":  "user updation not allowed",
+			"status": http.StatusBadRequest,
+		}
+	}
+	if err := ctrl.SongRepo.UpdateSong(&song); err != nil {
 		return routes.AppResp{
 			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
 		}
 	}
 	return routes.AppResp{
-		"response": "Song updated successfully by " + user,
+		"response": "Song updated successfully",
 		"data":     song,
 		"status":   http.StatusOK,
 	}
 }
 
-// DeleteSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper DeleteSong(*models.Song, id string) function to delete a song from database and returns a routes.AppResp response containing error message and status code
-func (s *Controller) DeleteSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
+// DeleteSong(context.Context, *routes.AppReq) is a gin.HandlerFunc that calls a helper DeleteSong function to delete a song from database and returns a routes.AppResp response containing error message and status code
+func (ctrl *Controller) DeleteSong(ctx context.Context, req *routes.AppReq) routes.AppResp {
 	user := ctx.Value("user").(string)
 	var song models.Song
 	id := req.Params["id"]
-	if err := s.Repo.DeleteSong(&song, id); err != nil {
+	if err := ctrl.SongRepo.DeleteSong(&song, id, user); err != nil {
 		return routes.AppResp{
 			"error":  err.Error(),
 			"status": http.StatusNotFound,

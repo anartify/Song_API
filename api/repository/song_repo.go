@@ -7,11 +7,11 @@ import (
 
 // SongInterface is an interface that defines all the helper methods required by controller functions.
 type SongInterface interface {
-	GetAllSong(b *[]models.Song) error
-	AddSong(b *models.Song) error
-	GetSong(b *models.Song, id string) error
-	UpdateSong(b *models.Song) error
-	DeleteSong(b *models.Song, id string) error
+	GetAllSong(song *[]models.Song, user string) error
+	AddSong(song *models.Song, user string) error
+	GetSong(song *models.Song, id string, user string) error
+	UpdateSong(song *models.Song) error
+	DeleteSong(song *models.Song, id string, user string) error
 }
 
 // SongRepo struct has the implementation of  all the methods of SongInterface.
@@ -27,39 +27,40 @@ func (e *CustomError) Error() string {
 	return e.message
 }
 
-// GetAllSong(*[]models.Song) gets all songs from database and returns error if any
-func (sr SongRepo) GetAllSong(b *[]models.Song) error {
-	if err := database.DB.Find(b).Error; err != nil {
+// GetAllSong(*[]models.Song, string) gets all songs from database and returns error if any
+func (sr SongRepo) GetAllSong(song *[]models.Song, user string) error {
+	if err := database.DB.Find(song, "user = ?", user).Error; err != nil {
 		return &CustomError{message: "No data found"}
 	}
 	return nil
 }
 
-// AddSong(*models.Song) adds a song in database and returns error if any
-func (sr SongRepo) AddSong(b *models.Song) error {
-	if err := database.DB.Create(b).Error; err != nil {
+// AddSong(*models.Song, string) adds a song in database and returns error if any
+func (sr SongRepo) AddSong(song *models.Song, user string) error {
+	song.User = user
+	if err := database.DB.Create(song).Error; err != nil {
 		return &CustomError{message: "Failed to add data"}
 	}
 	return nil
 }
 
-// GetSong(*models.Song, id string) gets a song from database and returns error if any
-func (sr SongRepo) GetSong(b *models.Song, id string) error {
-	if err := database.DB.Where("id = ?", id).First(b).Error; err != nil {
+// GetSong(*models.Song, string, string) gets a song from database and returns error if any
+func (sr SongRepo) GetSong(song *models.Song, id string, user string) error {
+	if err := database.DB.Where("id = ? AND user = ?", id, user).First(song).Error; err != nil {
 		return &CustomError{message: "No data found"}
 	}
 	return nil
 }
 
 // UpdateSong(*models.Song) updates a song in database and returns error if any
-func (sr SongRepo) UpdateSong(b *models.Song) error {
-	database.DB.Save(b)
+func (sr SongRepo) UpdateSong(song *models.Song) error {
+	database.DB.Save(song)
 	return nil
 }
 
-// DeleteSong(*models.Song, id string) deletes a song from database and returns error if any
-func (sr SongRepo) DeleteSong(b *models.Song, id string) error {
-	resp := database.DB.Where("id = ?", id).Delete(b)
+// DeleteSong(*models.Song, string, string) deletes a song from database and returns error if any
+func (sr SongRepo) DeleteSong(song *models.Song, id string, user string) error {
+	resp := database.DB.Where("id = ? AND user = ?", id, user).Delete(song)
 	if resp.RowsAffected == 0 {
 		return &CustomError{message: "No record Found"}
 	}

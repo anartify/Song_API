@@ -17,4 +17,5 @@ func Connect() {
 		panic("failed to connect to database")
 	}
 	DB.AutoMigrate(&models.Song{})
+	DB.AutoMigrate(&models.Account{})
 }
