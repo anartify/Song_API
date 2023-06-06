@@ -1,10 +1,10 @@
-package api
+package internal
 
 import (
-	"Song_API/api/controllers"
-	"Song_API/api/middleware"
-	"Song_API/api/repository"
-	"Song_API/api/routes"
+	"Song_API/internal/routes"
+	"Song_API/pkg/controllers"
+	"Song_API/pkg/middleware"
+	"Song_API/pkg/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,7 +23,7 @@ func NewServer() *Server {
 
 // Start() registers the routes and starts the server
 func (s *Server) Start() error {
-	handler := &controllers.Controller{SongRepo: repository.SongRepo{}, AccountRepo: repository.AccountRepo{}}
+	handler := controllers.NewController(repository.SongRepo{}, repository.AccountRepo{})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/",
 		Group:       "songs",
@@ -38,7 +38,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "POST",
 		Handler:     handler.AddSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/:id",
@@ -54,7 +54,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "PUT",
 		Handler:     handler.UpdateSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/:id",
@@ -62,7 +62,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "DELETE",
 		Handler:     handler.DeleteSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/new",
@@ -70,7 +70,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "POST",
 		Handler:     handler.CreateAccount,
-		Middlewares: []gin.HandlerFunc{middleware.Validation()},
+		Middlewares: []gin.HandlerFunc{},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/",
@@ -78,7 +78,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "POST",
 		Handler:     handler.GetAccount,
-		Middlewares: []gin.HandlerFunc{middleware.Validation()},
+		Middlewares: []gin.HandlerFunc{},
 	})
 	routes.InitializeRoutes(s.router)
 	return s.router.Run()

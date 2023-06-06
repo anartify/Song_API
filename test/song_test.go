@@ -1,11 +1,11 @@
 package test
 
 import (
-	"Song_API/api/controllers"
-	"Song_API/api/middleware"
-	"Song_API/api/models"
-	"Song_API/api/routes"
-	"Song_API/api/utils"
+	"Song_API/internal/routes"
+	"Song_API/pkg/controllers"
+	"Song_API/pkg/middleware"
+	"Song_API/pkg/models"
+	"Song_API/pkg/utils"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -58,7 +58,7 @@ func (m *MockSongRepo) DeleteSong(b *models.Song, id string, user string) error 
 func initializeTest() (*MockSongRepo, *controllers.Controller, *gin.Engine) {
 	gin.SetMode(gin.TestMode)
 	mockSongRepo := new(MockSongRepo)
-	controller := &controllers.Controller{SongRepo: mockSongRepo}
+	controller := controllers.NewController(mockSongRepo, nil)
 	return mockSongRepo, controller, gin.Default()
 }
 
@@ -98,7 +98,7 @@ func TestAddSong(t *testing.T) {
 		Version:     "v1",
 		Method:      "POST",
 		Handler:     controller.AddSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
 	})
 	routes.InitializeRoutes(router)
 	song := `{"song": "Test", "artist": "test artist", "plays": 1, "release_date": "2020-01-01"}`
@@ -145,7 +145,7 @@ func TestUpdateSong(t *testing.T) {
 		Version:     "v1",
 		Method:      "PUT",
 		Handler:     controller.UpdateSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization(), middleware.Validation()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
 	})
 	routes.InitializeRoutes(router)
 	mockSongRepo.On("GetSong", mock.AnythingOfType("*models.Song"), "1", "TestUser").Return(nil)

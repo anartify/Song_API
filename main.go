@@ -1,12 +1,12 @@
 package main
 
 import (
-	"Song_API/api"
 	"Song_API/database"
+	"Song_API/internal"
 )
 
 func main() {
 	database.Connect()
-	server := api.NewServer()
+	server := internal.NewServer()
 	server.Start()
 }

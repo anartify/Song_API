@@ -1,8 +1,8 @@
 package test
 
 import (
-	"Song_API/api/middleware"
-	"Song_API/api/models"
+	"Song_API/pkg/controllers/validation"
+	"Song_API/pkg/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,30 +19,30 @@ func TestSongValidation(t *testing.T) {
 	}
 
 	song.Song = ""
-	err := middleware.ValidateSong(song, true)
+	err := validation.ValidateSong(song, true)
 	assert.Error(err, "validation should fail for empty Song")
 
 	song.Song = "My Song"
 	song.Artist = ""
-	err = middleware.ValidateSong(song, true)
+	err = validation.ValidateSong(song, true)
 	assert.Error(err, "validation should fail for empty Artist")
 
 	song.Artist = "My Artist"
 	song.Plays = -1
-	err = middleware.ValidateSong(song, true)
+	err = validation.ValidateSong(song, true)
 	assert.Error(err, "validation should fail for negative Plays")
 
 	song.Plays = 10
 	song.ReleaseDate = ""
-	err = middleware.ValidateSong(song, true)
+	err = validation.ValidateSong(song, true)
 	assert.Error(err, "validation should fail for empty ReleaseDate")
 
 	song.ReleaseDate = "2022-01-01 00:00:00"
-	err = middleware.ValidateSong(song, true)
+	err = validation.ValidateSong(song, true)
 	assert.Error(err, "validation should fail for invalid ReleaseDate")
 
 	song.ReleaseDate = "2022-01-01"
-	err = middleware.ValidateSong(song, true)
+	err = validation.ValidateSong(song, true)
 	assert.NoError(err, "validation should pass")
 
 	account := models.Account{
@@ -50,19 +50,19 @@ func TestSongValidation(t *testing.T) {
 		Password: "kyuBatau",
 	}
 	account.User = ""
-	err = middleware.ValidateAccount(account)
+	err = validation.ValidateAccount(account)
 	assert.Error(err, "validation should fail for user with length less than 4")
 
 	account.User = "4n_4rt1fy"
-	err = middleware.ValidateAccount(account)
+	err = validation.ValidateAccount(account)
 	assert.Error(err, "validation should fail if user contains non-alphanumeric characters")
 
 	account.User = "anartify"
 	account.Password = ""
-	err = middleware.ValidateAccount(account)
+	err = validation.ValidateAccount(account)
 	assert.Error(err, "Validation should fail for password with length less than 8")
 
 	account.Password = "kyuBt44u"
-	err = middleware.ValidateAccount(account)
+	err = validation.ValidateAccount(account)
 	assert.NoError(err, "Validation should pass")
 }

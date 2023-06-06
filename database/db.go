@@ -1,21 +1,26 @@
 package database
 
 import (
-	"Song_API/api/models"
+	"Song_API/pkg/models"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 )
 
-var DB *gorm.DB
+var db *gorm.DB
+
+// GetDB() returns the pointer to the database.
+func GetDB() *gorm.DB {
+	return db
+}
 
 // Connect() connects the mysql database and automigrates the tables.
 func Connect() {
 	var err error
-	DB, err = gorm.Open("mysql", DbUrl())
+	db, err = gorm.Open("mysql", DbUrl())
 	if err != nil {
 		panic("failed to connect to database")
 	}
-	DB.AutoMigrate(&models.Song{})
-	DB.AutoMigrate(&models.Account{})
+	db.AutoMigrate(&models.Song{})
+	db.AutoMigrate(&models.Account{})
 }

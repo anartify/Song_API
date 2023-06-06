@@ -1,22 +1,11 @@
 package routes
 
 import (
-	"context"
+	"Song_API/pkg/controllers/utils"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
-
-// AppReq is a struct to hold the request body, headers, query and params.
-type AppReq struct {
-	Body    map[string]interface{}
-	Headers map[string]string
-	Query   map[string]string
-	Params  map[string]string
-}
-
-type AppResp map[string]interface{}
-
-type RouteHandler func(ctx context.Context, req *AppReq) AppResp
 
 // RouteDef struct holds the path, group, version, request method, middlewares and associated handler function of a route.
 type RouteDef struct {
@@ -24,7 +13,7 @@ type RouteDef struct {
 	Group       string
 	Version     string
 	Method      string
-	Handler     RouteHandler
+	Handler     utils.RouteHandler
 	Middlewares []gin.HandlerFunc
 }
 
@@ -45,7 +34,7 @@ func InitializeRoutes(server *gin.Engine) {
 	for _, r := range clientRoutes {
 		route := r
 		ginHandler := func(c *gin.Context) {
-			appReq := &AppReq{
+			appReq := &utils.AppReq{
 				Body:    make(map[string]interface{}),
 				Headers: make(map[string]string),
 				Query:   make(map[string]string),
@@ -64,8 +53,12 @@ func InitializeRoutes(server *gin.Engine) {
 			for _, param := range c.Params {
 				appReq.Params[param.Key] = param.Value
 			}
-			if body, ok := c.Get("body"); ok {
-				appReq.Body = body.(map[string]interface{})
+			if c.Request.ContentLength > 0 {
+				if err := c.ShouldBindJSON(&appReq.Body); err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse request body"})
+					c.Abort()
+					return
+				}
 			}
 			resp := route.Handler(c.Request.Context(), appReq)
 			c.JSON(resp["status"].(int), resp)
