@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"Song_API/internal/database"
+	"Song_API/pkg/cache"
 	"Song_API/pkg/controllers/utils"
 	"Song_API/pkg/controllers/validation"
 	"Song_API/pkg/models"
@@ -13,15 +15,19 @@ import (
 
 // Controller struct holds a Song and Account Interface objects of repo layer. The controller functions use it to access the methods of the repository package
 type Controller struct {
-	SongRepo    repository.SongInterface
-	AccountRepo repository.AccountInterface
+	SongRepo     repository.SongInterface
+	AccountRepo  repository.AccountInterface
+	SongCache    cache.Cache
+	AccountCache cache.Cache
 }
 
 // NewController function returns a new pointer to a Controller struct.
 func NewController(songRepo repository.SongInterface, accountRepo repository.AccountInterface) *Controller {
 	return &Controller{
-		SongRepo:    songRepo,
-		AccountRepo: accountRepo,
+		SongRepo:     songRepo,
+		AccountRepo:  accountRepo,
+		SongCache:    cache.NewCacheClient(database.SongCache()),
+		AccountCache: cache.NewCacheClient(database.AccountCache()),
 	}
 }
 
@@ -43,6 +49,8 @@ func (ctrl *Controller) AddSong(ctx context.Context, req *utils.AppReq) utils.Ap
 			"status": http.StatusInternalServerError,
 		}
 	}
+	val, _ := json.Marshal(song)
+	ctrl.SongCache.Set(fmt.Sprintf("%v", song.GetID())+user, string(val))
 	return utils.AppResp{
 		"response": "Song added successfully",
 		"data":     song,
@@ -54,12 +62,21 @@ func (ctrl *Controller) AddSong(ctx context.Context, req *utils.AppReq) utils.Ap
 func (ctrl *Controller) GetAllSong(ctx context.Context, req *utils.AppReq) utils.AppResp {
 	user := ctx.Value("user").(string)
 	var song []models.Song
+	if val, err := ctrl.SongCache.Get(user); err == nil {
+		json.Unmarshal([]byte(val), &song)
+		return utils.AppResp{
+			"data":   song,
+			"status": http.StatusOK,
+		}
+	}
 	if err := ctrl.SongRepo.GetAllSong(&song, user); err != nil {
 		return utils.AppResp{
 			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
 		}
 	}
+	val, _ := json.Marshal(song)
+	ctrl.SongCache.Set(user, string(val))
 	return utils.AppResp{
 		"data":   song,
 		"status": http.StatusOK,
@@ -71,12 +88,21 @@ func (ctrl *Controller) GetSongById(ctx context.Context, req *utils.AppReq) util
 	user := ctx.Value("user").(string)
 	var song models.Song
 	id := req.Params["id"]
+	if val, err := ctrl.SongCache.Get(id + user); err == nil {
+		json.Unmarshal([]byte(val), &song)
+		return utils.AppResp{
+			"data":   song,
+			"status": http.StatusOK,
+		}
+	}
 	if err := ctrl.SongRepo.GetSong(&song, id, user); err != nil {
 		return utils.AppResp{
 			"error":  err.Error(),
 			"status": http.StatusNotFound,
 		}
 	}
+	val, _ := json.Marshal(song)
+	ctrl.SongCache.Set(id+user, string(val))
 	return utils.AppResp{
 		"data":   song,
 		"status": http.StatusOK,
@@ -88,7 +114,10 @@ func (ctrl *Controller) UpdateSong(ctx context.Context, req *utils.AppReq) utils
 	user := ctx.Value("user").(string)
 	var song models.Song
 	id := req.Params["id"]
-	if err := ctrl.SongRepo.GetSong(&song, id, user); err != nil {
+	val, cacheErr := ctrl.SongCache.Get(id + user)
+	if cacheErr == nil {
+		json.Unmarshal([]byte(val), &song)
+	} else if err := ctrl.SongRepo.GetSong(&song, id, user); err != nil {
 		return utils.AppResp{
 			"error":  err.Error(),
 			"status": http.StatusNotFound,
@@ -120,6 +149,9 @@ func (ctrl *Controller) UpdateSong(ctx context.Context, req *utils.AppReq) utils
 			"status": http.StatusInternalServerError,
 		}
 	}
+	ctrl.SongCache.Delete(id + user)
+	bytes, _ := json.Marshal(song)
+	ctrl.SongCache.Set(id+user, string(bytes))
 	return utils.AppResp{
 		"response": "Song updated successfully",
 		"data":     song,
@@ -138,6 +170,7 @@ func (ctrl *Controller) DeleteSong(ctx context.Context, req *utils.AppReq) utils
 			"status": http.StatusNotFound,
 		}
 	}
+	ctrl.SongCache.Delete(id + user)
 	return utils.AppResp{
 		"response": "id " + id + " deleted by " + user,
 		"status":   http.StatusOK,
