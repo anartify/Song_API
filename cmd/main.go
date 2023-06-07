@@ -1,8 +1,8 @@
 package main
 
 import (
-	"Song_API/database"
 	"Song_API/internal"
+	"Song_API/internal/database"
 )
 
 func main() {
