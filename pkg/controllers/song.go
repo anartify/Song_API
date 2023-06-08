@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"Song_API/internal/database"
 	"Song_API/pkg/cache"
 	"Song_API/pkg/controllers/utils"
 	"Song_API/pkg/controllers/validation"
+	"Song_API/pkg/database"
 	"Song_API/pkg/models"
 	"Song_API/pkg/repository"
 	"context"
