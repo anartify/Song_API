@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"Song_API/internal/database"
 	"Song_API/pkg/apperror"
+	"Song_API/pkg/database"
 	"Song_API/pkg/models"
 	"Song_API/pkg/utils"
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"Song_API/internal"
-	"Song_API/internal/database"
+	"Song_API/pkg/database"
 )
 
 func main() {
