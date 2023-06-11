@@ -49,8 +49,6 @@ func (ctrl *Controller) AddSong(ctx context.Context, req *utils.AppReq) utils.Ap
 		}
 	}
 	val, _ := json.Marshal(song)
-	fmt.Println(song)
-	fmt.Println("song added successfully")
 	ctrl.SongCache.Set(fmt.Sprintf("%v", song.GetID())+user, string(val))
 	return utils.AppResp{
 		"response": "Song added successfully",

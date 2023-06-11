@@ -90,14 +90,14 @@ func TestGetAllSong(t *testing.T) {
 		Version:     "v1",
 		Method:      "GET",
 		Handler:     controller.GetAllSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"general", "admin"})},
 	})
 	routes.InitializeRoutes(router)
 	mockSongRepo.On("GetAllSong", mock.AnythingOfType("*[]models.Song"), "TestUser").Return(nil)
 	mockSongCache.On("Get", "TestUser").Return("", errors.New("Key not found"))
 	mockSongCache.On("Set", "TestUser", mock.AnythingOfType("string")).Return(nil)
 	req, _ := http.NewRequest("GET", "/v1/songs/", nil)
-	token, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass"})
+	token, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass", Role: "general"})
 	req.Header.Set("Authorization", "Bearer "+token)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
@@ -118,12 +118,12 @@ func TestAddSong(t *testing.T) {
 		Version:     "v1",
 		Method:      "POST",
 		Handler:     controller.AddSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"general", "admin"})},
 	})
 	routes.InitializeRoutes(router)
 	song := `{"song": "Test", "artist": "test artist", "plays": 1, "release_date": "2020-01-01"}`
 	req, _ := http.NewRequest("POST", "/v1/songs/", strings.NewReader(song))
-	token, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass"})
+	token, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass", Role: "general"})
 	req.Header.Set("Authorization", "Bearer "+token)
 	resp := httptest.NewRecorder()
 
@@ -141,14 +141,14 @@ func TestGetSongById(t *testing.T) {
 		Version:     "v1",
 		Method:      "GET",
 		Handler:     controller.GetSongById,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"general", "admin"})},
 	})
 	routes.InitializeRoutes(router)
 	mockSongRepo.On("GetSong", mock.AnythingOfType("*models.Song"), "1", "TestUser").Return(nil)
 	mockSongCache.On("Get", "1TestUser").Return("", errors.New("Key not found"))
 	mockSongCache.On("Set", "1TestUser", mock.AnythingOfType("string")).Return(nil)
 	req, _ := http.NewRequest("GET", "/v1/songs/1", nil)
-	token, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass"})
+	token, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass", Role: "general"})
 	req.Header.Set("Authorization", "Bearer "+token)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
@@ -166,7 +166,7 @@ func TestUpdateSong(t *testing.T) {
 		Version:     "v1",
 		Method:      "PUT",
 		Handler:     controller.UpdateSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"general", "admin"})},
 	})
 	routes.InitializeRoutes(router)
 	mockSongRepo.On("GetSong", mock.AnythingOfType("*models.Song"), "1", "TestUser").Return(nil)
@@ -176,7 +176,7 @@ func TestUpdateSong(t *testing.T) {
 	mockSongCache.On("Delete", "1TestUser").Return(nil)
 	song := `{"song": "NewSong"}`
 	req, _ := http.NewRequest("PUT", "/v1/songs/1", strings.NewReader(song))
-	token, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass"})
+	token, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass", Role: "general"})
 	req.Header.Set("Authorization", "Bearer "+token)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
@@ -194,13 +194,13 @@ func TestDeleteSong(t *testing.T) {
 		Version:     "v1",
 		Method:      "DELETE",
 		Handler:     controller.DeleteSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"general", "admin"})},
 	})
 	routes.InitializeRoutes(router)
 	mockSongRepo.On("DeleteSong", mock.AnythingOfType("*models.Song"), "1", "TestUser").Return(nil)
 	mockSongCache.On("Delete", "1TestUser").Return(nil)
 	req, _ := http.NewRequest("DELETE", "/v1/songs/1", nil)
-	token, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass"})
+	token, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass", Role: "general"})
 	req.Header.Set("Authorization", "Bearer "+token)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)

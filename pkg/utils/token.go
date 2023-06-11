@@ -13,6 +13,7 @@ func GenerateToken(account *models.Account) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["user"] = account.User
 	claims["password"] = account.Password
+	claims["role"] = account.Role
 	signingKey := []byte(viper.GetString("AUTH_KEY"))
 	generatedToken, err := token.SignedString(signingKey)
 	if err != nil {

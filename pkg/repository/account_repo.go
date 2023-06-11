@@ -13,6 +13,8 @@ import (
 type AccountInterface interface {
 	CreateAccount(*models.Account) error
 	GetAccount(*models.Account) (string, error)
+	GetAllAccount(*[]models.Account) error
+	UpdateRole(*models.Account) error
 }
 
 // AccountRepo struct has the implementation of  all the methods of AccountInterface.
@@ -45,4 +47,19 @@ func (ar AccountRepo) GetAccount(account *models.Account) (string, error) {
 	account.SetPassword(password)
 	token, _ := utils.GenerateToken(account)
 	return token, nil
+}
+
+func (ar AccountRepo) GetAllAccount(acc *[]models.Account) error {
+	var account models.Account
+	if err := database.GetDB().Table(account.TableName()).Select("user, role").Find(&acc).Error; err != nil {
+		return &apperror.CustomError{Message: "No account found"}
+	}
+	return nil
+}
+
+func (ar AccountRepo) UpdateRole(acc *models.Account) error {
+	if err := database.GetDB().Model(acc).Where("user = ?", acc.GetUser()).Update("role", acc.GetRole()).Error; err != nil {
+		return &apperror.CustomError{Message: "User not found"}
+	}
+	return nil
 }
