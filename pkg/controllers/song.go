@@ -4,7 +4,6 @@ import (
 	"Song_API/pkg/cache"
 	"Song_API/pkg/controllers/utils"
 	"Song_API/pkg/controllers/validation"
-	"Song_API/pkg/database"
 	"Song_API/pkg/models"
 	"Song_API/pkg/repository"
 	"context"
@@ -22,12 +21,12 @@ type Controller struct {
 }
 
 // NewController function returns a new pointer to a Controller struct.
-func NewController(songRepo repository.SongInterface, accountRepo repository.AccountInterface) *Controller {
+func NewController(songRepo repository.SongInterface, accountRepo repository.AccountInterface, songCache cache.Cache, accountCache cache.Cache) *Controller {
 	return &Controller{
 		SongRepo:     songRepo,
 		AccountRepo:  accountRepo,
-		SongCache:    cache.NewCacheClient(database.SongCache()),
-		AccountCache: cache.NewCacheClient(database.AccountCache()),
+		SongCache:    songCache,
+		AccountCache: accountCache,
 	}
 }
 
@@ -50,6 +49,8 @@ func (ctrl *Controller) AddSong(ctx context.Context, req *utils.AppReq) utils.Ap
 		}
 	}
 	val, _ := json.Marshal(song)
+	fmt.Println(song)
+	fmt.Println("song added successfully")
 	ctrl.SongCache.Set(fmt.Sprintf("%v", song.GetID())+user, string(val))
 	return utils.AppResp{
 		"response": "Song added successfully",

@@ -2,7 +2,9 @@ package internal
 
 import (
 	"Song_API/internal/routes"
+	"Song_API/pkg/cache"
 	"Song_API/pkg/controllers"
+	"Song_API/pkg/database"
 	"Song_API/pkg/middleware"
 	"Song_API/pkg/repository"
 
@@ -23,7 +25,9 @@ func NewServer() *Server {
 
 // Start() registers the routes and starts the server
 func (s *Server) Start() error {
-	handler := controllers.NewController(repository.SongRepo{}, repository.AccountRepo{})
+	songCache := cache.NewCacheClient(database.SongCache())
+	accountCache := cache.NewCacheClient(database.AccountCache())
+	handler := controllers.NewController(repository.SongRepo{}, repository.AccountRepo{}, songCache, accountCache)
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/",
 		Group:       "songs",
