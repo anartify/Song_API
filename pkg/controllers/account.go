@@ -5,6 +5,7 @@ import (
 	"Song_API/pkg/controllers/utils"
 	"Song_API/pkg/controllers/validation"
 	"Song_API/pkg/models"
+	appUtility "Song_API/pkg/utils"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -52,13 +53,14 @@ func (ctrl *Controller) GetAccount(ctx context.Context, req *utils.AppReq) utils
 			"status": http.StatusBadRequest,
 		}
 	}
-	token, err := ctrl.AccountRepo.GetAccount(&acc)
-	if err != nil {
+	if err := ctrl.AccountRepo.GetAccount(&acc); err != nil {
 		return utils.AppResp{
 			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
 		}
 	}
+	token, remTime, _ := appUtility.GenerateToken(&acc)
+	ctrl.AccountCache.Set("token", token, remTime)
 	return utils.AppResp{
 		"account": acc,
 		"token":   token,
@@ -67,18 +69,24 @@ func (ctrl *Controller) GetAccount(ctx context.Context, req *utils.AppReq) utils
 }
 
 func (ctrl *Controller) GetAllAccount(ctx context.Context, req *utils.AppReq) utils.AppResp {
-	var acc []models.Account
-	if err := ctrl.AccountRepo.GetAllAccount(&acc); err != nil {
-		return utils.AppResp{
-			"error":  err.Error(),
-			"status": http.StatusInternalServerError,
-		}
-	}
 	var resAcc []map[string]interface{}
-	for _, account := range acc {
-		resAcc = append(resAcc, map[string]interface{}{
-			"user": account.GetUser(),
-			"role": account.GetRole()})
+	if val, err := ctrl.AccountCache.Get("all"); err == nil {
+		json.Unmarshal([]byte(val), &resAcc)
+	} else {
+		var acc []models.Account
+		if err := ctrl.AccountRepo.GetAllAccount(&acc); err != nil {
+			return utils.AppResp{
+				"error":  err.Error(),
+				"status": http.StatusInternalServerError,
+			}
+		}
+		for _, account := range acc {
+			resAcc = append(resAcc, map[string]interface{}{
+				"user": account.GetUser(),
+				"role": account.GetRole()})
+		}
+		val, _ := json.Marshal(resAcc)
+		ctrl.AccountCache.Set("all", string(val))
 	}
 	return utils.AppResp{
 		"accounts": resAcc,
@@ -109,6 +117,7 @@ func (ctrl *Controller) UpdateRole(ctx context.Context, req *utils.AppReq) utils
 		"user": acc.GetUser(),
 		"role": acc.GetRole(),
 	}
+	ctrl.AccountCache.Delete("all")
 	return utils.AppResp{
 		"response": "Account role updated successfully",
 		"account":  resAcc,

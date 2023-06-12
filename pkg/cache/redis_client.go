@@ -11,7 +11,7 @@ import (
 // Cache interface defines the required methods for a cache client
 type Cache interface {
 	Get(key string) (string, error)
-	Set(key string, value string) error
+	Set(key string, value string, exp ...time.Duration) error
 	Delete(key string) error
 }
 
@@ -52,9 +52,13 @@ func (r *RedisCache) Get(key string) (string, error) {
 }
 
 // Set method inserts the value of the given key
-func (r *RedisCache) Set(key string, value string) error {
+func (r *RedisCache) Set(key string, value string, exp ...time.Duration) error {
 	client := r.getClient()
-	err := client.Set(context.Background(), key, value, r.expire).Err()
+	expiration := r.expire
+	if len(exp) > 0 {
+		expiration = exp[0]
+	}
+	err := client.Set(context.Background(), key, value, expiration).Err()
 	return err
 }
 

@@ -34,7 +34,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "GET",
 		Handler:     handler.GetAllSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"})},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/",
@@ -42,7 +42,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "POST",
 		Handler:     handler.AddSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"})},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/:id",
@@ -50,7 +50,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "GET",
 		Handler:     handler.GetSongById,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"})},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/:id",
@@ -58,7 +58,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "PUT",
 		Handler:     handler.UpdateSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"})},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/:id",
@@ -66,7 +66,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "DELETE",
 		Handler:     handler.DeleteSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"})},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/new",
@@ -90,7 +90,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "GET",
 		Handler:     handler.GetAllAccount,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin"})},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin"}, accountCache)},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/role",
@@ -98,7 +98,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "PUT",
 		Handler:     handler.UpdateRole,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin"})},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin"}, accountCache)},
 	})
 	routes.InitializeRoutes(s.router)
 	return s.router.Run()

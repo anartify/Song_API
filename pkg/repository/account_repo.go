@@ -4,7 +4,6 @@ import (
 	"Song_API/pkg/apperror"
 	"Song_API/pkg/database"
 	"Song_API/pkg/models"
-	"Song_API/pkg/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -12,7 +11,7 @@ import (
 // AccountInterface is an interface that defines all the helper methods required by controller functions.
 type AccountInterface interface {
 	CreateAccount(*models.Account) error
-	GetAccount(*models.Account) (string, error)
+	GetAccount(*models.Account) error
 	GetAllAccount(*[]models.Account) error
 	UpdateRole(*models.Account) error
 }
@@ -35,20 +34,20 @@ func (ar AccountRepo) CreateAccount(account *models.Account) error {
 	return nil
 }
 
-// GetAccount(*models.Account) gets an account from database and returns authentication token and error if any
-func (ar AccountRepo) GetAccount(account *models.Account) (string, error) {
+// GetAccount(*models.Account) gets an account from database and returns error if any
+func (ar AccountRepo) GetAccount(account *models.Account) error {
 	password := account.GetPassword()
 	if err := database.GetDB().Where("user = ?", account.GetUser()).First(account).Error; err != nil {
-		return "", &apperror.CustomError{Message: "No account found"}
+		return &apperror.CustomError{Message: "No account found"}
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(account.GetPassword()), []byte(password)); err != nil {
-		return "", &apperror.CustomError{Message: "Invalid password"}
+		return &apperror.CustomError{Message: "Invalid password"}
 	}
 	account.SetPassword(password)
-	token, _ := utils.GenerateToken(account)
-	return token, nil
+	return nil
 }
 
+// GetAllAccount(*[]models.Account) populates user and role field of the models.Account struct from the database and returns error if any
 func (ar AccountRepo) GetAllAccount(acc *[]models.Account) error {
 	var account models.Account
 	if err := database.GetDB().Table(account.TableName()).Select("user, role").Find(&acc).Error; err != nil {
@@ -57,6 +56,7 @@ func (ar AccountRepo) GetAllAccount(acc *[]models.Account) error {
 	return nil
 }
 
+// UpdateRole(*models.Account) updates the role of the user and returns error if any
 func (ar AccountRepo) UpdateRole(acc *models.Account) error {
 	if err := database.GetDB().Model(acc).Where("user = ?", acc.GetUser()).Update("role", acc.GetRole()).Error; err != nil {
 		return &apperror.CustomError{Message: "User not found"}
