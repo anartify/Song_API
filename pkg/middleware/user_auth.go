@@ -48,7 +48,11 @@ func Authorization(roles []string, cache cache.Cache) gin.HandlerFunc {
 		}
 		remTime := time.Until(time.Unix(int64(exp), 0))
 		cache.Set("token", tokenString, remTime)
-		ctx := context.WithValue(c.Request.Context(), "user", user)
+		tokenClaims := map[string]interface{}{
+			"user": user,
+			"role": userRole,
+		}
+		ctx := context.WithValue(c.Request.Context(), "token", tokenClaims)
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}

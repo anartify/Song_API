@@ -32,7 +32,8 @@ func NewController(songRepo repository.SongInterface, accountRepo repository.Acc
 
 // AddSong(context.Context, *utils.AppReq) function calls a helper AddSong function to add a song in database and returns a utils.AppResp response containing error message, status code and data
 func (ctrl *Controller) AddSong(ctx context.Context, req *utils.AppReq) utils.AppResp {
-	user := ctx.Value("user").(string)
+	tokenClaims := ctx.Value("token").(map[string]interface{})
+	user := tokenClaims["user"].(string)
 	var song models.Song
 	bodyBytes, _ := json.Marshal(req.Body)
 	json.Unmarshal(bodyBytes, &song)
@@ -59,7 +60,8 @@ func (ctrl *Controller) AddSong(ctx context.Context, req *utils.AppReq) utils.Ap
 
 // GetAllSong(context.Context, *utils.AppReq) function calls a helper GetAllSong function to get all songs from database and returns a utils.AppResp response containing error message, status code and data
 func (ctrl *Controller) GetAllSong(ctx context.Context, req *utils.AppReq) utils.AppResp {
-	user := ctx.Value("user").(string)
+	tokenClaims := ctx.Value("token").(map[string]interface{})
+	user := tokenClaims["user"].(string)
 	var song []models.Song
 	if val, err := ctrl.SongCache.Get(user); err == nil {
 		json.Unmarshal([]byte(val), &song)
@@ -84,7 +86,8 @@ func (ctrl *Controller) GetAllSong(ctx context.Context, req *utils.AppReq) utils
 
 // GetSongById(context.Context, *utils.AppReq) function calls a helper GetSong function to get a song from database and returns a utils.AppResp response containing error message, status code and data
 func (ctrl *Controller) GetSongById(ctx context.Context, req *utils.AppReq) utils.AppResp {
-	user := ctx.Value("user").(string)
+	tokenClaims := ctx.Value("token").(map[string]interface{})
+	user := tokenClaims["user"].(string)
 	var song models.Song
 	id := req.Params["id"]
 	if val, err := ctrl.SongCache.Get(id + user); err == nil {
@@ -110,7 +113,8 @@ func (ctrl *Controller) GetSongById(ctx context.Context, req *utils.AppReq) util
 
 // UpdateSong(context.Context, *utils.AppReq) function calls a helper UpdateSong to update a song in database and returns a utils.AppResp response containing error message, status code and data
 func (ctrl *Controller) UpdateSong(ctx context.Context, req *utils.AppReq) utils.AppResp {
-	user := ctx.Value("user").(string)
+	tokenClaims := ctx.Value("token").(map[string]interface{})
+	user := tokenClaims["user"].(string)
 	var song models.Song
 	id := req.Params["id"]
 	val, cacheErr := ctrl.SongCache.Get(id + user)
@@ -160,7 +164,8 @@ func (ctrl *Controller) UpdateSong(ctx context.Context, req *utils.AppReq) utils
 
 // DeleteSong(context.Context, *utils.AppReq) function calls a helper DeleteSong function to delete a song from database and returns a utils.AppResp response containing error message and status code
 func (ctrl *Controller) DeleteSong(ctx context.Context, req *utils.AppReq) utils.AppResp {
-	user := ctx.Value("user").(string)
+	tokenClaims := ctx.Value("token").(map[string]interface{})
+	user := tokenClaims["user"].(string)
 	var song models.Song
 	id := req.Params["id"]
 	if err := ctrl.SongRepo.DeleteSong(&song, id, user); err != nil {

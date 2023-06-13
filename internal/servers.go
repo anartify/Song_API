@@ -100,6 +100,14 @@ func (s *Server) Start() error {
 		Handler:     handler.UpdateRole,
 		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin"}, accountCache)},
 	})
+	routes.RegisterRoutes(routes.RouteDef{
+		Path:        "/",
+		Group:       "accounts",
+		Version:     "v1",
+		Method:      "DELETE",
+		Handler:     handler.DeleteAccount,
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
+	})
 	routes.InitializeRoutes(s.router)
 	return s.router.Run()
 }

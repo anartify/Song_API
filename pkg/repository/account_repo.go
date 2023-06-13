@@ -14,6 +14,7 @@ type AccountInterface interface {
 	GetAccount(*models.Account) error
 	GetAllAccount(*[]models.Account) error
 	UpdateRole(*models.Account) error
+	DeleteAccount(*models.Account) error
 }
 
 // AccountRepo struct has the implementation of  all the methods of AccountInterface.
@@ -60,6 +61,14 @@ func (ar AccountRepo) GetAllAccount(acc *[]models.Account) error {
 func (ar AccountRepo) UpdateRole(acc *models.Account) error {
 	if err := database.GetDB().Model(acc).Where("user = ?", acc.GetUser()).Update("role", acc.GetRole()).Error; err != nil {
 		return &apperror.CustomError{Message: "User not found"}
+	}
+	return nil
+}
+
+func (ar AccountRepo) DeleteAccount(acc *models.Account) error {
+	resp := database.GetDB().Where("user = ?", acc.GetUser()).Delete(acc)
+	if resp.RowsAffected == 0 {
+		return &apperror.CustomError{Message: "No User Found"}
 	}
 	return nil
 }

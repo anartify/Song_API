@@ -124,3 +124,28 @@ func (ctrl *Controller) UpdateRole(ctx context.Context, req *utils.AppReq) utils
 		"status":   http.StatusOK,
 	}
 }
+
+func (ctrl *Controller) DeleteAccount(ctx context.Context, req *utils.AppReq) utils.AppResp {
+	tokenClaims := ctx.Value("token").(map[string]interface{})
+	user := tokenClaims["user"].(string)
+	role := tokenClaims["role"].(string)
+	var acc models.Account
+	acc.SetUser(req.Query["user"])
+	if role == "admin" || user == acc.GetUser() {
+		if err := ctrl.AccountRepo.DeleteAccount(&acc); err != nil {
+			return utils.AppResp{
+				"error":  err.Error(),
+				"status": http.StatusInternalServerError,
+			}
+		}
+		ctrl.AccountCache.Delete("all")
+		return utils.AppResp{
+			"response": "Account associated with " + acc.GetUser() + " deleted successfully by " + user,
+			"status":   http.StatusOK,
+		}
+	}
+	return utils.AppResp{
+		"error":  "Only admin or account owner can delete this account",
+		"status": http.StatusUnauthorized,
+	}
+}
