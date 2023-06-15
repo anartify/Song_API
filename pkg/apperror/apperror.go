@@ -12,6 +12,7 @@ func (e *CustomError) Error() string {
 	return e.Message
 }
 
+// Combine([]error) method combines multiple errors into one
 func (e *CustomError) Combine(errors []error) error {
 	var combinedErr error
 	for _, err := range errors {
@@ -22,7 +23,5 @@ func (e *CustomError) Combine(errors []error) error {
 		}
 	}
 	e.Message = combinedErr.Error()
-	fmt.Println(e.Message)
-	fmt.Println(combinedErr)
 	return combinedErr
 }

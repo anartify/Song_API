@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-// CreateAccount(context.Context, *routes.AppReq) function calls a helper CreateAccount function to create an account in database and returns a utils.AppResp response containing error message, status code and account data
+// CreateAccount(context.Context, *utils.AppReq) function calls a helper CreateAccount function to create an account in database and returns a utils.AppResp response containing error message, status code and account data
 func (ctrl *Controller) CreateAccount(ctx context.Context, req *utils.AppReq) utils.AppResp {
 	var acc models.Account
 	var customErr apperror.CustomError
@@ -39,7 +39,7 @@ func (ctrl *Controller) CreateAccount(ctx context.Context, req *utils.AppReq) ut
 	}
 }
 
-// GetAccount(context.Context, *routes.AppReq) function calls a helper GetAccount function to get an account from database and returns a utils.AppResp response containing error message, status code, account data and authentication token
+// GetAccount(context.Context, *utils.AppReq) function calls a helper GetAccount function to get an account from database and returns a utils.AppResp response containing error message, status code, account data and authentication token
 func (ctrl *Controller) GetAccount(ctx context.Context, req *utils.AppReq) utils.AppResp {
 	var acc models.Account
 	var customErr apperror.CustomError
@@ -68,6 +68,7 @@ func (ctrl *Controller) GetAccount(ctx context.Context, req *utils.AppReq) utils
 	}
 }
 
+// GetAllAccount(context.Context, *utils.AppReq) function calls a helper GetAllAccount function to get user and role field of all accounts from database and returns a utils.AppResp response containing error message, status code and accounts data
 func (ctrl *Controller) GetAllAccount(ctx context.Context, req *utils.AppReq) utils.AppResp {
 	var resAcc []map[string]interface{}
 	if val, err := ctrl.AccountCache.Get("all"); err == nil {
@@ -94,6 +95,7 @@ func (ctrl *Controller) GetAllAccount(ctx context.Context, req *utils.AppReq) ut
 	}
 }
 
+// UpdateRole(context.Context, *utils.AppReq) function calls a helper UpdateRole function to update role of an account in database and returns a utils.AppResp response containing error, response message, status code and account data
 func (ctrl *Controller) UpdateRole(ctx context.Context, req *utils.AppReq) utils.AppResp {
 	var acc models.Account
 	var customErr apperror.CustomError
@@ -125,6 +127,7 @@ func (ctrl *Controller) UpdateRole(ctx context.Context, req *utils.AppReq) utils
 	}
 }
 
+// DeleteAccount(context.Context, *utils.AppReq) function allows account owners to delete their account. It also allows admin user to delete any users account. It calls a helper DeleteAccount function to delete an account from database and returns a utils.AppResp response containing error message, status code and response message
 func (ctrl *Controller) DeleteAccount(ctx context.Context, req *utils.AppReq) utils.AppResp {
 	tokenClaims := ctx.Value("token").(map[string]interface{})
 	user := tokenClaims["user"].(string)

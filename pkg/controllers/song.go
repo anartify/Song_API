@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-// Controller struct holds a Song and Account Interface objects of repo layer. The controller functions use it to access the methods of the repository package
+// Controller struct holds a Song and Account Interface objects of repo layer and cache interfaces. The controller functions use them to access the methods of the repository and cache package.
 type Controller struct {
 	SongRepo     repository.SongInterface
 	AccountRepo  repository.AccountInterface

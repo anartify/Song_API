@@ -65,6 +65,7 @@ func (ar AccountRepo) UpdateRole(acc *models.Account) error {
 	return nil
 }
 
+// DeleteAccount(*models.Account) deletes the account from database and returns error if any
 func (ar AccountRepo) DeleteAccount(acc *models.Account) error {
 	resp := database.GetDB().Where("user = ?", acc.GetUser()).Delete(acc)
 	if resp.RowsAffected == 0 {
