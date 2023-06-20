@@ -142,6 +142,9 @@ func (ctrl *Controller) DeleteAccount(ctx context.Context, req *utils.AppReq) ut
 			}
 		}
 		ctrl.AccountCache.Delete("all")
+		if user == acc.GetUser() {
+			ctrl.AccountCache.Delete("token")
+		}
 		return utils.AppResp{
 			"response": "Account associated with " + acc.GetUser() + " deleted successfully by " + user,
 			"status":   http.StatusOK,
