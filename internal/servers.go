@@ -28,8 +28,9 @@ func NewServer() *Server {
 func (s *Server) Start() error {
 	songCache := cache.NewCacheClient(database.SongCache())
 	accountCache := cache.NewCacheClient(database.AccountCache())
+	bucketCache := cache.NewCacheClient(database.BucketCache())
 	handler := controllers.NewController(repository.SongRepo{}, repository.AccountRepo{}, songCache, accountCache)
-	globalRule := ratelimit.Rule{Capacity: 100, Rate: 10}
+	globalRule := ratelimit.Rule{Capacity: 1000, Rate: 500}
 	rateRules := []ratelimit.Rule{
 		{Capacity: 100, Rate: 90, Path: "/v1/songs/", Method: "GET"},
 		{Capacity: 50, Rate: 30, Path: "/v1/songs/", Method: "POST"},
@@ -50,7 +51,7 @@ func (s *Server) Start() error {
 		Handler: handler.GetAllSong,
 		Middlewares: []gin.HandlerFunc{
 			middleware.Authorization([]string{"admin", "general"}, accountCache),
-			middleware.RateLimit(rateRules, globalRule),
+			middleware.RateLimit(rateRules, globalRule, bucketCache),
 		},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
@@ -61,7 +62,7 @@ func (s *Server) Start() error {
 		Handler: handler.AddSong,
 		Middlewares: []gin.HandlerFunc{
 			middleware.Authorization([]string{"admin", "general"}, accountCache),
-			middleware.RateLimit(rateRules, globalRule),
+			middleware.RateLimit(rateRules, globalRule, bucketCache),
 		},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
@@ -72,7 +73,7 @@ func (s *Server) Start() error {
 		Handler: handler.GetSongById,
 		Middlewares: []gin.HandlerFunc{
 			middleware.Authorization([]string{"admin", "general"}, accountCache),
-			middleware.RateLimit(rateRules, globalRule),
+			middleware.RateLimit(rateRules, globalRule, bucketCache),
 		},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
@@ -83,7 +84,7 @@ func (s *Server) Start() error {
 		Handler: handler.UpdateSong,
 		Middlewares: []gin.HandlerFunc{
 			middleware.Authorization([]string{"admin", "general"}, accountCache),
-			middleware.RateLimit(rateRules, globalRule),
+			middleware.RateLimit(rateRules, globalRule, bucketCache),
 		},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
@@ -94,7 +95,7 @@ func (s *Server) Start() error {
 		Handler: handler.DeleteSong,
 		Middlewares: []gin.HandlerFunc{
 			middleware.Authorization([]string{"admin", "general"}, accountCache),
-			middleware.RateLimit(rateRules, globalRule),
+			middleware.RateLimit(rateRules, globalRule, bucketCache),
 		},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
@@ -104,7 +105,7 @@ func (s *Server) Start() error {
 		Method:  "POST",
 		Handler: handler.CreateAccount,
 		Middlewares: []gin.HandlerFunc{
-			middleware.RateLimit(rateRules, globalRule),
+			middleware.RateLimit(rateRules, globalRule, bucketCache),
 		},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
@@ -114,7 +115,7 @@ func (s *Server) Start() error {
 		Method:  "POST",
 		Handler: handler.GetAccount,
 		Middlewares: []gin.HandlerFunc{
-			middleware.RateLimit(rateRules, globalRule),
+			middleware.RateLimit(rateRules, globalRule, bucketCache),
 		},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
@@ -125,7 +126,7 @@ func (s *Server) Start() error {
 		Handler: handler.GetAllAccount,
 		Middlewares: []gin.HandlerFunc{
 			middleware.Authorization([]string{"admin"}, accountCache),
-			middleware.RateLimit(rateRules, globalRule),
+			middleware.RateLimit(rateRules, globalRule, bucketCache),
 		},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
@@ -136,7 +137,7 @@ func (s *Server) Start() error {
 		Handler: handler.UpdateRole,
 		Middlewares: []gin.HandlerFunc{
 			middleware.Authorization([]string{"admin"}, accountCache),
-			middleware.RateLimit(rateRules, globalRule),
+			middleware.RateLimit(rateRules, globalRule, bucketCache),
 		},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
@@ -147,7 +148,7 @@ func (s *Server) Start() error {
 		Handler: handler.DeleteAccount,
 		Middlewares: []gin.HandlerFunc{
 			middleware.Authorization([]string{"admin", "general"}, accountCache),
-			middleware.RateLimit(rateRules, globalRule),
+			middleware.RateLimit(rateRules, globalRule, bucketCache),
 		},
 	})
 	routes.InitializeRoutes(s.router)

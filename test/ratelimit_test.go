@@ -1,6 +1,7 @@
 package test
 
 import (
+	"Song_API/pkg/cache"
 	"Song_API/pkg/middleware"
 	"Song_API/pkg/ratelimit"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestRateLimit function tests if the rate limit middleware works as expected that is it rejects requests when the rate limit is reached
 func TestRateLimit(t *testing.T) {
 	assert := assert.New(t)
 	rateRule := []ratelimit.Rule{
@@ -18,11 +20,12 @@ func TestRateLimit(t *testing.T) {
 		{Path: "/api/test", Method: "POST", Capacity: 3, Rate: 1},
 	}
 	globalRule := ratelimit.Rule{Capacity: 7, Rate: 1}
+	bucketCache := cache.NewCacheClient("localhost", 6379, 3, 3600, "")
 	router := gin.Default()
-	router.GET("/api/test", middleware.RateLimit(rateRule, globalRule), func(c *gin.Context) {
+	router.GET("/api/test", middleware.RateLimit(rateRule, globalRule, bucketCache), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Success"})
 	})
-	router.POST("/api/test", middleware.RateLimit(rateRule, globalRule), func(c *gin.Context) {
+	router.POST("/api/test", middleware.RateLimit(rateRule, globalRule, bucketCache), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Success"})
 	})
 	overallCounter := 0

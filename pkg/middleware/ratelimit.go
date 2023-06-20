@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"Song_API/pkg/cache"
 	"Song_API/pkg/ratelimit"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,12 +11,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RateLimit(rateRules []ratelimit.Rule, globalRule ratelimit.Rule) gin.HandlerFunc {
+// RateLimit function is a middleware function that checks if the rate limit is reached for a particular client. If the quota of client isn't reached, it verifies the global quota (Global limit is set to protect the server from all clients across all endpoints). If the global quota is reached, it rejects the request, otherwise it allows the request to proceed.
+func RateLimit(rateRules []ratelimit.Rule, globalRule ratelimit.Rule, bucketCache cache.Cache) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		client := getClient(c)
 		rule := getRule(c, rateRules)
-		bucket := ratelimit.GetBucket(client, rule)
-		globalBucket := ratelimit.GetBucket("global", globalRule)
+		bucket := ratelimit.GetBucket(client, rule, bucketCache)
+		globalBucket := ratelimit.GetBucket("global", globalRule, bucketCache)
 		if !bucket.Allow() {
 			c.JSON(http.StatusTooManyRequests, gin.H{"message": "Too many requests"})
 			c.Abort()
@@ -25,10 +28,15 @@ func RateLimit(rateRules []ratelimit.Rule, globalRule ratelimit.Rule) gin.Handle
 			c.Abort()
 			return
 		}
+		bucketData, _ := json.Marshal(bucket)
+		globalBucketData, _ := json.Marshal(globalBucket)
+		bucketCache.Set(client, string(bucketData))
+		bucketCache.Set("global", string(globalBucketData))
 		c.Next()
 	}
 }
 
+// getClient function returns a string that uniquely identifies a client. It is a combination of client IP, path and method.
 func getClient(c *gin.Context) string {
 	ip := c.ClientIP()
 	path := c.Request.URL.Path
@@ -37,6 +45,7 @@ func getClient(c *gin.Context) string {
 	return data
 }
 
+// isPathMatched function checks if the path in the request matches the path in the rate rule.
 func isPathMatched(c *gin.Context, rulePath string) bool {
 	actualPath := c.Request.URL.Path
 	ruleSegments := strings.Split(rulePath, "/")
@@ -60,6 +69,7 @@ func isPathMatched(c *gin.Context, rulePath string) bool {
 	return true
 }
 
+// getRule function returns the rate rule for a particular request. If the request doesn't match any rule, it returns the default rule.
 func getRule(c *gin.Context, rateRules []ratelimit.Rule) ratelimit.Rule {
 	path := c.Request.URL.Path
 	method := c.Request.Method
