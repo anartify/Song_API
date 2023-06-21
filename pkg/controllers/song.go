@@ -49,8 +49,7 @@ func (ctrl *Controller) AddSong(ctx context.Context, req *utils.AppReq) utils.Ap
 			"status": http.StatusInternalServerError,
 		}
 	}
-	val, _ := json.Marshal(song)
-	ctrl.SongCache.Set(fmt.Sprintf("%v", song.GetID())+user, string(val))
+	ctrl.SongCache.Set(fmt.Sprintf("%v", song.GetID())+user, song)
 	return utils.AppResp{
 		"response": "Song added successfully",
 		"data":     song,
@@ -63,21 +62,16 @@ func (ctrl *Controller) GetAllSong(ctx context.Context, req *utils.AppReq) utils
 	tokenClaims := ctx.Value("token").(map[string]interface{})
 	user := tokenClaims["user"].(string)
 	var song []models.Song
-	if val, err := ctrl.SongCache.Get(user); err == nil {
-		json.Unmarshal([]byte(val), &song)
-		return utils.AppResp{
-			"data":   song,
-			"status": http.StatusOK,
+	cacheErr := ctrl.SongCache.Get(user, &song)
+	if cacheErr != nil {
+		if err := ctrl.SongRepo.GetAllSong(&song, user); err != nil {
+			return utils.AppResp{
+				"error":  err.Error(),
+				"status": http.StatusInternalServerError,
+			}
 		}
+		ctrl.SongCache.Set(user, song)
 	}
-	if err := ctrl.SongRepo.GetAllSong(&song, user); err != nil {
-		return utils.AppResp{
-			"error":  err.Error(),
-			"status": http.StatusInternalServerError,
-		}
-	}
-	val, _ := json.Marshal(song)
-	ctrl.SongCache.Set(user, string(val))
 	return utils.AppResp{
 		"data":   song,
 		"status": http.StatusOK,
@@ -90,21 +84,16 @@ func (ctrl *Controller) GetSongById(ctx context.Context, req *utils.AppReq) util
 	user := tokenClaims["user"].(string)
 	var song models.Song
 	id := req.Params["id"]
-	if val, err := ctrl.SongCache.Get(id + user); err == nil {
-		json.Unmarshal([]byte(val), &song)
-		return utils.AppResp{
-			"data":   song,
-			"status": http.StatusOK,
+	cacheErr := ctrl.SongCache.Get(id+user, &song)
+	if cacheErr != nil {
+		if err := ctrl.SongRepo.GetSong(&song, id, user); err != nil {
+			return utils.AppResp{
+				"error":  err.Error(),
+				"status": http.StatusNotFound,
+			}
 		}
+		ctrl.SongCache.Set(id+user, song)
 	}
-	if err := ctrl.SongRepo.GetSong(&song, id, user); err != nil {
-		return utils.AppResp{
-			"error":  err.Error(),
-			"status": http.StatusNotFound,
-		}
-	}
-	val, _ := json.Marshal(song)
-	ctrl.SongCache.Set(id+user, string(val))
 	return utils.AppResp{
 		"data":   song,
 		"status": http.StatusOK,
@@ -117,13 +106,13 @@ func (ctrl *Controller) UpdateSong(ctx context.Context, req *utils.AppReq) utils
 	user := tokenClaims["user"].(string)
 	var song models.Song
 	id := req.Params["id"]
-	val, cacheErr := ctrl.SongCache.Get(id + user)
-	if cacheErr == nil {
-		json.Unmarshal([]byte(val), &song)
-	} else if err := ctrl.SongRepo.GetSong(&song, id, user); err != nil {
-		return utils.AppResp{
-			"error":  err.Error(),
-			"status": http.StatusNotFound,
+	cacheErr := ctrl.SongCache.Get(id+user, &song)
+	if cacheErr != nil {
+		if err := ctrl.SongRepo.GetSong(&song, id, user); err != nil {
+			return utils.AppResp{
+				"error":  err.Error(),
+				"status": http.StatusNotFound,
+			}
 		}
 	}
 	bodyBytes, _ := json.Marshal(req.Body)
@@ -153,8 +142,7 @@ func (ctrl *Controller) UpdateSong(ctx context.Context, req *utils.AppReq) utils
 		}
 	}
 	ctrl.SongCache.Delete(id + user)
-	bytes, _ := json.Marshal(song)
-	ctrl.SongCache.Set(id+user, string(bytes))
+	ctrl.SongCache.Set(id+user, song)
 	return utils.AppResp{
 		"response": "Song updated successfully",
 		"data":     song,

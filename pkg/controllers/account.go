@@ -71,9 +71,8 @@ func (ctrl *Controller) GetAccount(ctx context.Context, req *utils.AppReq) utils
 // GetAllAccount(context.Context, *utils.AppReq) function calls a helper GetAllAccount function to get user and role field of all accounts from database and returns a utils.AppResp response containing error message, status code and accounts data
 func (ctrl *Controller) GetAllAccount(ctx context.Context, req *utils.AppReq) utils.AppResp {
 	var resAcc []map[string]interface{}
-	if val, err := ctrl.AccountCache.Get("all"); err == nil {
-		json.Unmarshal([]byte(val), &resAcc)
-	} else {
+	err := ctrl.AccountCache.Get("all", &resAcc)
+	if err != nil {
 		var acc []models.Account
 		if err := ctrl.AccountRepo.GetAllAccount(&acc); err != nil {
 			return utils.AppResp{

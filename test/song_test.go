@@ -6,6 +6,7 @@ import (
 	"Song_API/pkg/middleware"
 	"Song_API/pkg/models"
 	"Song_API/pkg/utils"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -57,12 +58,12 @@ type MockSongCache struct {
 	mock.Mock
 }
 
-func (m *MockSongCache) Get(key string) (string, error) {
-	args := m.Called(key)
-	return args.String(0), args.Error(1)
+func (m *MockSongCache) Get(key string, value interface{}) error {
+	args := m.Called(key, value)
+	return args.Error(1)
 }
 
-func (m *MockSongCache) Set(key string, value string, exp ...time.Duration) error {
+func (m *MockSongCache) Set(key string, value interface{}, exp ...time.Duration) error {
 	args := m.Called(key, value)
 	return args.Error(0)
 }
@@ -94,11 +95,11 @@ func TestGetAllSong(t *testing.T) {
 		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"general", "admin"}, mockSongCache)},
 	})
 	routes.InitializeRoutes(router)
+	var songs []models.Song
 	mockSongRepo.On("GetAllSong", mock.AnythingOfType("*[]models.Song"), "TestUser").Return(nil)
-	mockSongCache.On("Get", "TestUser").Return("", errors.New("Key not found"))
-	mockSongCache.On("Set", "TestUser", mock.AnythingOfType("string")).Return(nil)
+	mockSongCache.On("Get", "TestUser", &songs).Return("", errors.New("Key not found"))
+	mockSongCache.On("Set", "TestUser", mock.AnythingOfType("[]models.Song")).Return(nil)
 	mockSongCache.On("Set", "token", mock.AnythingOfType("string")).Return(nil)
-	mockSongCache.On("Get", "token").Return(errors.New("Key Not found"))
 	req, _ := http.NewRequest("GET", "/v1/songs/", nil)
 	token, _, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass", Role: "general"})
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -113,10 +114,12 @@ func TestGetAllSong(t *testing.T) {
 func TestAddSong(t *testing.T) {
 
 	mockSongRepo, mockSongCache, controller, router := initializeTest()
+	payload := `{"song": "Test", "artist": "test artist", "plays": 1, "release_date": "2020-01-01"}`
+	var song models.Song
+	json.Unmarshal([]byte(payload), &song)
 	mockSongRepo.On("AddSong", mock.AnythingOfType("*models.Song"), "TestUser").Return(nil)
-	mockSongCache.On("Set", "0TestUser", mock.AnythingOfType("string")).Return(nil)
+	mockSongCache.On("Set", "0TestUser", song).Return(nil)
 	mockSongCache.On("Set", "token", mock.AnythingOfType("string")).Return(nil)
-	mockSongCache.On("Get", "token").Return(errors.New("Key Not found"))
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/",
 		Group:       "songs",
@@ -126,8 +129,7 @@ func TestAddSong(t *testing.T) {
 		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"general", "admin"}, mockSongCache)},
 	})
 	routes.InitializeRoutes(router)
-	song := `{"song": "Test", "artist": "test artist", "plays": 1, "release_date": "2020-01-01"}`
-	req, _ := http.NewRequest("POST", "/v1/songs/", strings.NewReader(song))
+	req, _ := http.NewRequest("POST", "/v1/songs/", strings.NewReader(payload))
 	token, _, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass", Role: "general"})
 	req.Header.Set("Authorization", "Bearer "+token)
 	resp := httptest.NewRecorder()
@@ -149,11 +151,11 @@ func TestGetSongById(t *testing.T) {
 		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"general", "admin"}, mockSongCache)},
 	})
 	routes.InitializeRoutes(router)
+	var song models.Song
 	mockSongRepo.On("GetSong", mock.AnythingOfType("*models.Song"), "1", "TestUser").Return(nil)
-	mockSongCache.On("Get", "1TestUser").Return("", errors.New("Key not found"))
-	mockSongCache.On("Set", "1TestUser", mock.AnythingOfType("string")).Return(nil)
+	mockSongCache.On("Get", "1TestUser", &song).Return("", errors.New("Key not found"))
+	mockSongCache.On("Set", "1TestUser", mock.AnythingOfType("models.Song")).Return(nil)
 	mockSongCache.On("Set", "token", mock.AnythingOfType("string")).Return(nil)
-	mockSongCache.On("Get", "token").Return(errors.New("Key Not found"))
 	req, _ := http.NewRequest("GET", "/v1/songs/1", nil)
 	token, _, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass", Role: "general"})
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -176,15 +178,15 @@ func TestUpdateSong(t *testing.T) {
 		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"general", "admin"}, mockSongCache)},
 	})
 	routes.InitializeRoutes(router)
+	var song models.Song
 	mockSongRepo.On("GetSong", mock.AnythingOfType("*models.Song"), "1", "TestUser").Return(nil)
 	mockSongRepo.On("UpdateSong", mock.AnythingOfType("*models.Song")).Return(nil)
-	mockSongCache.On("Get", "1TestUser").Return("", errors.New("Key not found"))
-	mockSongCache.On("Set", "1TestUser", mock.AnythingOfType("string")).Return(nil)
+	mockSongCache.On("Get", "1TestUser", &song).Return("", errors.New("Key not found"))
+	mockSongCache.On("Set", "1TestUser", mock.AnythingOfType("models.Song")).Return(nil)
 	mockSongCache.On("Delete", "1TestUser").Return(nil)
 	mockSongCache.On("Set", "token", mock.AnythingOfType("string")).Return(nil)
-	mockSongCache.On("Get", "token").Return(errors.New("Key Not found"))
-	song := `{"song": "NewSong"}`
-	req, _ := http.NewRequest("PUT", "/v1/songs/1", strings.NewReader(song))
+	payload := `{"song": "NewSong"}`
+	req, _ := http.NewRequest("PUT", "/v1/songs/1", strings.NewReader(payload))
 	token, _, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass", Role: "general"})
 	req.Header.Set("Authorization", "Bearer "+token)
 	resp := httptest.NewRecorder()
@@ -209,7 +211,6 @@ func TestDeleteSong(t *testing.T) {
 	mockSongRepo.On("DeleteSong", mock.AnythingOfType("*models.Song"), "1", "TestUser").Return(nil)
 	mockSongCache.On("Delete", "1TestUser").Return(nil)
 	mockSongCache.On("Set", "token", mock.AnythingOfType("string")).Return(nil)
-	mockSongCache.On("Get", "token").Return(errors.New("Key Not found"))
 	req, _ := http.NewRequest("DELETE", "/v1/songs/1", nil)
 	token, _, _ := utils.GenerateToken(&models.Account{User: "TestUser", Password: "TestPass", Role: "general"})
 	req.Header.Set("Authorization", "Bearer "+token)

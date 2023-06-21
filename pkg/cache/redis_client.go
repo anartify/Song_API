@@ -1,7 +1,9 @@
 package cache
 
 import (
+	"Song_API/pkg/apperror"
 	"context"
+	"encoding/json"
 	"strconv"
 	"time"
 
@@ -10,8 +12,8 @@ import (
 
 // Cache interface defines the required methods for a cache client
 type Cache interface {
-	Get(key string) (string, error)
-	Set(key string, value string, exp ...time.Duration) error
+	Get(key string, value interface{}) error
+	Set(key string, value interface{}, exp ...time.Duration) error
 	Delete(key string) error
 }
 
@@ -44,21 +46,26 @@ func (r *Redis) getClient() *redis.Client {
 	})
 }
 
-// Get method returns the value of the given key
-func (r *Redis) Get(key string) (string, error) {
+// Get method takes key and interface as arguements and populates the interface with the value of the given key
+func (r *Redis) Get(key string, value interface{}) error {
 	client := r.getClient()
 	resp, err := client.Get(context.Background(), key).Result()
-	return resp, err
+	json.Unmarshal([]byte(resp), value)
+	return err
 }
 
 // Set method inserts the value of the given key
-func (r *Redis) Set(key string, value string, exp ...time.Duration) error {
+func (r *Redis) Set(key string, value interface{}, exp ...time.Duration) error {
 	client := r.getClient()
 	expiration := r.expire
 	if len(exp) > 0 {
 		expiration = exp[0]
 	}
-	err := client.Set(context.Background(), key, value, expiration).Err()
+	valBytes, errMarshal := json.Marshal(value)
+	if errMarshal != nil {
+		return &apperror.CustomError{Message: "Failed to marshal data"}
+	}
+	err := client.Set(context.Background(), key, valBytes, expiration).Err()
 	return err
 }
 
