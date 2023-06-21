@@ -19,7 +19,7 @@ func Authorization(roles []string, cache cache.Cache) gin.HandlerFunc {
 		var tokenString string
 		var cacheErr error
 		if authHeader == "" {
-			tokenString, cacheErr = cache.Get("token")
+			cacheErr = cache.Get("token", &tokenString)
 			if cacheErr != nil {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing Authorization Header"})
 				c.Abort()

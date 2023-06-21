@@ -26,9 +26,9 @@ func NewServer() *Server {
 
 // Start() registers the routes and starts the server
 func (s *Server) Start() error {
-	songCache := cache.NewCacheClient(database.SongCache())
-	accountCache := cache.NewCacheClient(database.AccountCache())
-	bucketCache := cache.NewCacheClient(database.BucketCache())
+	songCache := cache.NewClient(database.SongCache())
+	accountCache := cache.NewClient(database.AccountCache())
+	bucketCache := cache.NewClient(database.BucketCache())
 	handler := controllers.NewController(repository.SongRepo{}, repository.AccountRepo{}, songCache, accountCache)
 	globalRule := ratelimit.Rule{Capacity: 1000, Rate: 500}
 	rateRules := []ratelimit.Rule{

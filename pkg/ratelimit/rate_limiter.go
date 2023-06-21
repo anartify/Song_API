@@ -3,7 +3,6 @@ package ratelimit
 import (
 	"Song_API/pkg/cache"
 	"Song_API/pkg/ratelimit/bucket"
-	"encoding/json"
 )
 
 // Rule struct defines the fields for rules of a rate limiter. It has the following fields:
@@ -20,11 +19,10 @@ type Rule struct {
 
 // GetBucket function gets the token bucket from the cache if it exists, otherwise it creates a new token bucket
 func GetBucket(key string, rule Rule, bucketCache cache.Cache) *bucket.Bucket {
-	var tokenBucket *bucket.Bucket
-	if b, err := bucketCache.Get(key); err == nil {
-		json.Unmarshal([]byte(b), &tokenBucket)
-	} else {
-		tokenBucket = bucket.NewBucket(rule.Capacity, rule.Rate)
+	var tokenBucket bucket.Bucket
+	cacheErr := bucketCache.Get(key, &tokenBucket)
+	if cacheErr != nil {
+		return bucket.NewBucket(rule.Capacity, rule.Rate)
 	}
-	return tokenBucket
+	return &tokenBucket
 }

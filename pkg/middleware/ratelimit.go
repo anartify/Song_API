@@ -3,7 +3,6 @@ package middleware
 import (
 	"Song_API/pkg/cache"
 	"Song_API/pkg/ratelimit"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -28,10 +27,8 @@ func RateLimit(rateRules []ratelimit.Rule, globalRule ratelimit.Rule, bucketCach
 			c.Abort()
 			return
 		}
-		bucketData, _ := json.Marshal(bucket)
-		globalBucketData, _ := json.Marshal(globalBucket)
-		bucketCache.Set(client, string(bucketData))
-		bucketCache.Set("global", string(globalBucketData))
+		bucketCache.Set(client, bucket)
+		bucketCache.Set("global", globalBucket)
 		c.Next()
 	}
 }
