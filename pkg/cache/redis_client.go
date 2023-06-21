@@ -15,8 +15,8 @@ type Cache interface {
 	Delete(key string) error
 }
 
-// RedisCache implements the Cache interface
-type RedisCache struct {
+// Redis implements the Cache interface
+type Redis struct {
 	host     string
 	port     int
 	db       int
@@ -24,9 +24,9 @@ type RedisCache struct {
 	password string
 }
 
-// NewCacheClient instantiates a new RedisCache object
-func NewCacheClient(host string, port int, db int, expire int, password string) Cache {
-	return &RedisCache{
+// NewClient instantiates a new Redis object
+func NewClient(host string, port int, db int, expire int, password string) Cache {
+	return &Redis{
 		host:     host,
 		port:     port,
 		db:       db,
@@ -36,7 +36,7 @@ func NewCacheClient(host string, port int, db int, expire int, password string) 
 }
 
 // getClient method returns a new redis client
-func (r *RedisCache) getClient() *redis.Client {
+func (r *Redis) getClient() *redis.Client {
 	return redis.NewClient(&redis.Options{
 		Addr:     r.host + ":" + strconv.Itoa(r.port),
 		Password: r.password,
@@ -45,14 +45,14 @@ func (r *RedisCache) getClient() *redis.Client {
 }
 
 // Get method returns the value of the given key
-func (r *RedisCache) Get(key string) (string, error) {
+func (r *Redis) Get(key string) (string, error) {
 	client := r.getClient()
 	resp, err := client.Get(context.Background(), key).Result()
 	return resp, err
 }
 
 // Set method inserts the value of the given key
-func (r *RedisCache) Set(key string, value string, exp ...time.Duration) error {
+func (r *Redis) Set(key string, value string, exp ...time.Duration) error {
 	client := r.getClient()
 	expiration := r.expire
 	if len(exp) > 0 {
@@ -63,7 +63,7 @@ func (r *RedisCache) Set(key string, value string, exp ...time.Duration) error {
 }
 
 // Delete method deletes the value of the given key
-func (r *RedisCache) Delete(key string) error {
+func (r *Redis) Delete(key string) error {
 	client := r.getClient()
 	err := client.Del(context.Background(), key).Err()
 	return err

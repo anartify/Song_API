@@ -25,8 +25,8 @@ func NewServer() *Server {
 
 // Start() registers the routes and starts the server
 func (s *Server) Start() error {
-	songCache := cache.NewCacheClient(database.SongCache())
-	accountCache := cache.NewCacheClient(database.AccountCache())
+	songCache := cache.NewClient(database.SongCache())
+	accountCache := cache.NewClient(database.AccountCache())
 	handler := controllers.NewController(repository.SongRepo{}, repository.AccountRepo{}, songCache, accountCache)
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/",
