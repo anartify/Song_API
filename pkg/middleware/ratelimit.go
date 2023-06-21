@@ -15,6 +15,20 @@ func RateLimit(rateRules []ratelimit.Rule, globalRule ratelimit.Rule, bucketCach
 	return func(c *gin.Context) {
 		client := getClient(c)
 		rule := getRule(c, rateRules)
+		// Acquire lock on global bucket and client bucket
+		if err := bucketCache.AcquireLock("global-lock"); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.Abort()
+			return
+		}
+		if err := bucketCache.AcquireLock(client + "-lock"); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.Abort()
+			return
+		}
+		// Release lock on global bucket and client bucket
+		defer bucketCache.ReleaseLock("global-lock")
+		defer bucketCache.ReleaseLock(client + "-lock")
 		bucket := ratelimit.GetBucket(client, rule, bucketCache)
 		globalBucket := ratelimit.GetBucket("global", globalRule, bucketCache)
 		if !bucket.Allow() {

@@ -1,7 +1,6 @@
 package bucket
 
 import (
-	"sync"
 	"time"
 )
 
@@ -11,7 +10,6 @@ type Bucket struct {
 	Rate       int
 	Token      int
 	LastRefill time.Time
-	Mutex      sync.Mutex
 }
 
 // NewBucket function instantiates a new token bucket
@@ -39,8 +37,6 @@ func (b *Bucket) refill() {
 
 // Allow function checks if the token bucket has enough tokens to allow a request
 func (b *Bucket) Allow() bool {
-	b.Mutex.Lock()
-	defer b.Mutex.Unlock()
 	b.refill()
 	if b.Token > 0 {
 		b.Token--
