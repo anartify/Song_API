@@ -22,10 +22,11 @@ func TestRateLimit(t *testing.T) {
 	globalRule := ratelimit.Rule{Capacity: 7, Rate: 1}
 	bucketCache := cache.NewClient("localhost", 6379, 3, 3600, "")
 	router := gin.Default()
-	router.GET("/api/test", middleware.RateLimit(rateRule, globalRule, bucketCache), func(c *gin.Context) {
+	router.Use(middleware.RateLimit(rateRule, globalRule, bucketCache))
+	router.GET("/api/test", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Success"})
 	})
-	router.POST("/api/test", middleware.RateLimit(rateRule, globalRule, bucketCache), func(c *gin.Context) {
+	router.POST("/api/test", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Success"})
 	})
 	overallCounter := 0
