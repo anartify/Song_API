@@ -73,6 +73,16 @@ func (m *MockSongCache) Delete(key string) error {
 	return args.Error(0)
 }
 
+func (m *MockSongCache) AcquireLock(bucketKey string) error {
+	args := m.Called(bucketKey)
+	return args.Error(0)
+}
+
+func (m *MockSongCache) ReleaseLock(bucketKey string) error {
+	args := m.Called(bucketKey)
+	return args.Error(0)
+}
+
 // initializeTest() instantiates a MockSongRepo and creates a new Controller with this MockSongRepo as its Repo field. It also creates a new default gin.Engine and returns all three.
 func initializeTest() (*MockSongRepo, *MockSongCache, *controllers.Controller, *gin.Engine) {
 	gin.SetMode(gin.TestMode)

@@ -15,11 +15,18 @@ Song API is a REST API that allows you to manage songs in a playlist correspondi
     REDIS_PASSWORD="<Redis Password>"
     SONG_CACHE_DB=<Database number for Song Caching>    
     ACCOUNT_CACHE_DB=<Database number for Account Caching>
+    BUCKET_CACHE_DB=<Database number for Token Bucket Caching>
     SONG_CACHE_EXPIRE=<Expiration time in seconds>
     ACCOUNT_CACHE_EXPIRE=<Expiration time in seconds>
+    BUCKET_CACHE_EXPIRE=<Expiration time in seconds>
     ```
 3. Run the program using ```go run main.go```
 4. To test the api use ``` go test ./test```
 
 ## Usage
-API Documentation: `https://documenter.getpostman.com/view/27497116/2s93sf1W5R`
+Visit [API Documentation](https://documenter.getpostman.com/view/27497116/2s93sf1W5R) to get the details of the endpoints and their usage. 
+
+## Features
+- Caching: To access the data faster, caching is implemented using Redis.
+- Rate Limiting: To prevent the API from being abused, rate limiting is implemented using Token Bucket Algorithm. Middleware implements both client-specific and global rate limiting.
+- Role-based Access Control: To prevent unauthorized access to the API, role-based access control is implemented. There are two roles: admin and general. Admin has access to all the endpoints while general has access to limited endpoints.

@@ -15,25 +15,29 @@ type Cache interface {
 	Get(key string, value interface{}) error
 	Set(key string, value interface{}, exp ...time.Duration) error
 	Delete(key string) error
+	AcquireLock(bucketKey string) error
+	ReleaseLock(bucketKey string) error
 }
 
 // Redis implements the Cache interface
 type Redis struct {
-	host     string
-	port     int
-	db       int
-	expire   time.Duration
-	password string
+	host        string
+	port        int
+	db          int
+	expire      time.Duration
+	password    string
+	lockTimeOut time.Duration
 }
 
 // NewClient instantiates a new Redis object
 func NewClient(host string, port int, db int, expire int, password string) Cache {
 	return &Redis{
-		host:     host,
-		port:     port,
-		db:       db,
-		expire:   time.Duration(expire) * time.Second,
-		password: password,
+		host:        host,
+		port:        port,
+		db:          db,
+		expire:      time.Duration(expire) * time.Second,
+		password:    password,
+		lockTimeOut: 1 * time.Second,
 	}
 }
 
@@ -73,5 +77,29 @@ func (r *Redis) Set(key string, value interface{}, exp ...time.Duration) error {
 func (r *Redis) Delete(key string) error {
 	client := r.getClient()
 	err := client.Del(context.Background(), key).Err()
+	return err
+}
+
+// AcquireLock method acquires a lock on the given bucket
+func (r *Redis) AcquireLock(bucketKey string) error {
+	client := r.getClient()
+	attempts := 5 // Number of times to try to acquire lock
+	for i := 0; i < attempts; i++ {
+		status, err := client.SetNX(context.Background(), bucketKey, "locked", r.lockTimeOut).Result()
+		if status {
+			return nil
+		}
+		if err != nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return &apperror.CustomError{Message: "Failed to acquire lock"}
+}
+
+// ReleaseLock method releases the lock on the given bucket
+func (r *Redis) ReleaseLock(bucketKey string) error {
+	client := r.getClient()
+	err := client.Del(context.Background(), bucketKey).Err()
 	return err
 }

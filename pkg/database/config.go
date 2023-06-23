@@ -43,3 +43,13 @@ func AccountCache() (string, int, int, int, string) {
 	}
 	return viper.GetString("REDIS_HOST"), viper.GetInt("REDIS_PORT"), viper.GetInt("ACCOUNT_CACHE_DB"), viper.GetInt("ACCOUNT_CACHE_EXPIRE"), viper.GetString("REDIS_PASSWORD")
 }
+
+// BucketCache() reads the .env file and returns the bucket cache details (host, port, db, expire, password).
+func BucketCache() (string, int, int, int, string) {
+	viper.SetConfigFile(".env")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+	return viper.GetString("REDIS_HOST"), viper.GetInt("REDIS_PORT"), viper.GetInt("BUCKET_CACHE_DB"), viper.GetInt("BUCKET_CACHE_EXPIRE"), viper.GetString("REDIS_PASSWORD")
+}
