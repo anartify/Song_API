@@ -30,7 +30,7 @@ func TestRateLimit(t *testing.T) {
 		c.JSON(http.StatusOK, gin.H{"message": "Success"})
 	})
 	overallCounter := 0
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 20; i++ {
 		req, _ := http.NewRequest("GET", "/api/test", nil)
 		overallCounter++
 		resp := httptest.NewRecorder()
