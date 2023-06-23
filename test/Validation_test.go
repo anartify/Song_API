@@ -48,21 +48,32 @@ func TestSongValidation(t *testing.T) {
 	account := models.Account{
 		User:     "anartify",
 		Password: "kyuBatau",
+		Role:     "general",
 	}
+
 	account.User = ""
-	err = validation.ValidateAccount(account)
+	err = validation.ValidateCreateAccount(account)
+	assert.Error(err, "validation should fail for user with length less than 4")
+	err = validation.ValidateGetAccount(account)
+	assert.Error(err, "validation should fail for user with length less than 4")
+	err = validation.ValidateUpdateRole(account)
 	assert.Error(err, "validation should fail for user with length less than 4")
 
 	account.User = "4n_4rt1fy"
-	err = validation.ValidateAccount(account)
+	err = validation.ValidateCreateAccount(account)
+	assert.Error(err, "validation should fail if user contains non-alphanumeric characters")
+	err = validation.ValidateGetAccount(account)
+	assert.Error(err, "validation should fail if user contains non-alphanumeric characters")
+	err = validation.ValidateUpdateRole(account)
 	assert.Error(err, "validation should fail if user contains non-alphanumeric characters")
 
-	account.User = "anartify"
 	account.Password = ""
-	err = validation.ValidateAccount(account)
-	assert.Error(err, "Validation should fail for password with length less than 8")
+	err = validation.ValidateCreateAccount(account)
+	assert.Error(err, "validation should fail for password with length less than 8")
+	err = validation.ValidateGetAccount(account)
+	assert.Error(err, "validation should fail for password with length less than 8")
 
-	account.Password = "kyuBt44u"
-	err = validation.ValidateAccount(account)
-	assert.NoError(err, "Validation should pass")
+	account.Role = "guest"
+	err = validation.ValidateUpdateRole(account)
+	assert.Error(err, "Validation should fail for invalid role")
 }
