@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"Song_API/pkg/apperror"
 	"Song_API/pkg/controllers/utils"
 	"Song_API/pkg/controllers/validation"
 	"Song_API/pkg/models"
@@ -14,14 +13,11 @@ import (
 // CreateAccount(context.Context, *utils.AppReq) function calls a helper CreateAccount function to create an account in database and returns a utils.AppResp response containing error message, status code and account data
 func (ctrl *Controller) CreateAccount(ctx context.Context, req *utils.AppReq) utils.AppResp {
 	var acc models.Account
-	var customErr apperror.CustomError
 	bodyBytes, _ := json.Marshal(req.Body)
 	json.Unmarshal(bodyBytes, &acc)
-	errUser := validation.ValidateUser(acc)
-	errPass := validation.ValidatePassword(acc)
-	if errUser != nil || errPass != nil {
+	if err := validation.ValidateCreateAccount(acc); err != nil {
 		return utils.AppResp{
-			"error":  customErr.Combine([]error{errUser, errPass}).Error(),
+			"error":  err,
 			"status": http.StatusBadRequest,
 		}
 	}
@@ -42,14 +38,11 @@ func (ctrl *Controller) CreateAccount(ctx context.Context, req *utils.AppReq) ut
 // GetAccount(context.Context, *utils.AppReq) function calls a helper GetAccount function to get an account from database and returns a utils.AppResp response containing error message, status code, account data and authentication token
 func (ctrl *Controller) GetAccount(ctx context.Context, req *utils.AppReq) utils.AppResp {
 	var acc models.Account
-	var customErr apperror.CustomError
 	bodyBytes, _ := json.Marshal(req.Body)
 	json.Unmarshal(bodyBytes, &acc)
-	errUser := validation.ValidateUser(acc)
-	errPass := validation.ValidatePassword(acc)
-	if errUser != nil || errPass != nil {
+	if err := validation.ValidateGetAccount(acc); err != nil {
 		return utils.AppResp{
-			"error":  customErr.Combine([]error{errUser, errPass}).Error(),
+			"error":  err,
 			"status": http.StatusBadRequest,
 		}
 	}
@@ -97,14 +90,11 @@ func (ctrl *Controller) GetAllAccount(ctx context.Context, req *utils.AppReq) ut
 // UpdateRole(context.Context, *utils.AppReq) function calls a helper UpdateRole function to update role of an account in database and returns a utils.AppResp response containing error, response message, status code and account data
 func (ctrl *Controller) UpdateRole(ctx context.Context, req *utils.AppReq) utils.AppResp {
 	var acc models.Account
-	var customErr apperror.CustomError
 	bodyBytes, _ := json.Marshal(req.Body)
 	json.Unmarshal(bodyBytes, &acc)
-	errUser := validation.ValidateUser(acc)
-	errRole := validation.ValidateRole(acc)
-	if errUser != nil || errRole != nil {
+	if err := validation.ValidateUpdateRole(acc); err != nil {
 		return utils.AppResp{
-			"error":  customErr.Combine([]error{errUser, errRole}).Error(),
+			"error":  err,
 			"status": http.StatusBadRequest,
 		}
 	}
