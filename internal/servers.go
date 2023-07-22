@@ -2,7 +2,9 @@ package internal
 
 import (
 	"Song_API/internal/routes"
+	"Song_API/pkg/cache"
 	"Song_API/pkg/controllers"
+	"Song_API/pkg/database"
 	"Song_API/pkg/middleware"
 	"Song_API/pkg/repository"
 
@@ -23,14 +25,16 @@ func NewServer() *Server {
 
 // Start() registers the routes and starts the server
 func (s *Server) Start() error {
-	handler := controllers.NewController(repository.SongRepo{}, repository.AccountRepo{})
+	songCache := cache.NewClient(database.SongCache())
+	accountCache := cache.NewClient(database.AccountCache())
+	handler := controllers.NewController(repository.SongRepo{}, repository.AccountRepo{}, songCache, accountCache)
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/",
 		Group:       "songs",
 		Version:     "v1",
 		Method:      "GET",
 		Handler:     handler.GetAllSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/",
@@ -38,7 +42,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "POST",
 		Handler:     handler.AddSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/:id",
@@ -46,7 +50,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "GET",
 		Handler:     handler.GetSongById,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/:id",
@@ -54,7 +58,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "PUT",
 		Handler:     handler.UpdateSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/:id",
@@ -62,7 +66,7 @@ func (s *Server) Start() error {
 		Version:     "v1",
 		Method:      "DELETE",
 		Handler:     handler.DeleteSong,
-		Middlewares: []gin.HandlerFunc{middleware.Authorization()},
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
 	})
 	routes.RegisterRoutes(routes.RouteDef{
 		Path:        "/new",
@@ -79,6 +83,30 @@ func (s *Server) Start() error {
 		Method:      "POST",
 		Handler:     handler.GetAccount,
 		Middlewares: []gin.HandlerFunc{},
+	})
+	routes.RegisterRoutes(routes.RouteDef{
+		Path:        "/all",
+		Group:       "accounts",
+		Version:     "v1",
+		Method:      "GET",
+		Handler:     handler.GetAllAccount,
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin"}, accountCache)},
+	})
+	routes.RegisterRoutes(routes.RouteDef{
+		Path:        "/role",
+		Group:       "accounts",
+		Version:     "v1",
+		Method:      "PUT",
+		Handler:     handler.UpdateRole,
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin"}, accountCache)},
+	})
+	routes.RegisterRoutes(routes.RouteDef{
+		Path:        "/",
+		Group:       "accounts",
+		Version:     "v1",
+		Method:      "DELETE",
+		Handler:     handler.DeleteAccount,
+		Middlewares: []gin.HandlerFunc{middleware.Authorization([]string{"admin", "general"}, accountCache)},
 	})
 	routes.InitializeRoutes(s.router)
 	return s.router.Run()
